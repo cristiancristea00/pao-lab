@@ -6,7 +6,6 @@
 #include <bitset>
 #include <thread>
 
-#include "lut_types.h"
 
 #define UINT32(val)    static_cast<uint32_t>(val)
 
@@ -14,18 +13,15 @@
 #define NUM_OF_BITS_32    ( 32U )
 
 #define LUT_SIZE_16       ( std::numeric_limits<uint16_t>::max() + 1 )
-#define NUM_OF_BITS_16    ( 16U )
 
 #define LUT_SIZE_8        ( std::numeric_limits<uint8_t>::max() + 1 )
-#define NUM_OF_BITS_8     ( 8U )
 
 #define LUT_SIZE_4        ( 16U )
-#define NUM_OF_BITS_4     ( 4U )
 
 
 enum Constants
 {
-    NUM_OF_SAMPLES = 100'000'000UL,
+    NUM_OF_SAMPLES = 100'000'000L,
     SEED = 0xDEADBEEF42UL,
 };
 
@@ -37,8 +33,7 @@ auto inline Build16BitLut() noexcept -> void;
 auto inline Build8BitLut() noexcept -> void;
 auto inline Build4BitLut() noexcept -> void;
 
-template <typename T>
-auto inline ReverseBits(size_t const element, size_t const numOfBits) noexcept -> T;
+auto inline ReverseBits(size_t const element) noexcept -> uint32_t;
 
 auto inline ReverseBits32BitLut() noexcept -> void;
 auto inline ReverseBits16BitLut() noexcept -> void;
@@ -60,13 +55,24 @@ static uint32_t * source{nullptr};
 static uint32_t * destination{nullptr};
 
 
-static lut32_t * lut32{nullptr};
+static uint32_t * lut32{nullptr};
 
-static lut16_t * lut16{nullptr};
+static uint32_t * lut16_word1{nullptr};
+static uint32_t * lut16_word0{nullptr};
 
-static lut8_t * lut8{nullptr};
+static uint32_t * lut8_byte3{nullptr};
+static uint32_t * lut8_byte2{nullptr};
+static uint32_t * lut8_byte1{nullptr};
+static uint32_t * lut8_byte0{nullptr};
 
-static lut4_t * lut4{nullptr};
+static uint32_t * lut4_nibble7{nullptr};
+static uint32_t * lut4_nibble6{nullptr};
+static uint32_t * lut4_nibble5{nullptr};
+static uint32_t * lut4_nibble4{nullptr};
+static uint32_t * lut4_nibble3{nullptr};
+static uint32_t * lut4_nibble2{nullptr};
+static uint32_t * lut4_nibble1{nullptr};
+static uint32_t * lut4_nibble0{nullptr};
 
 
 auto main() -> int
@@ -117,65 +123,108 @@ auto inline Setup() noexcept -> void
 
 auto inline Build32BitLut() noexcept -> void
 {
-    lut32 = new(std::nothrow) lut32_t[LUT_SIZE_32];
+    lut32 = new(std::nothrow) uint32_t[LUT_SIZE_32];
     Check(lut32, "32-bit lookup table");
 
     for (register size_t elem = 0; elem < LUT_SIZE_32; ++elem)
     {
-        lut32[elem].value = ReverseBits<uint32_t>(elem, NUM_OF_BITS_32);
+        lut32[elem] = ReverseBits(elem);
     }
 }
 
 auto inline Build16BitLut() noexcept -> void
 {
-    lut16 = new(std::nothrow) lut16_t[LUT_SIZE_16];
-    Check(lut16, "16-bit lookup table");
+    lut16_word1 = new(std::nothrow) uint32_t[LUT_SIZE_16];
+    Check(lut16_word1, "16-bit lookup table (word1)");
+
+    lut16_word0 = new(std::nothrow) uint32_t[LUT_SIZE_16];
+    Check(lut16_word0, "16-bit lookup table (word0)");
 
     for (register size_t elem = 0; elem < LUT_SIZE_16; ++elem)
     {
-        lut16[elem].value = ReverseBits<uint16_t>(elem, NUM_OF_BITS_16);
+        lut16_word1[elem] = ReverseBits(UINT32(elem) << 16U);
+        lut16_word0[elem] = ReverseBits(UINT32(elem) << 0U);
     }
 }
 
 auto inline Build8BitLut() noexcept -> void
 {
-    lut8 = new(std::nothrow) lut8_t[LUT_SIZE_8];
-    Check(lut8, "8-bit lookup table");
+    lut8_byte3 = new(std::nothrow) uint32_t[LUT_SIZE_8];
+    Check(lut8_byte3, "8-bit lookup table (byte3)");
+
+    lut8_byte2 = new(std::nothrow) uint32_t[LUT_SIZE_8];
+    Check(lut8_byte2, "8-bit lookup table (byte2)");
+
+    lut8_byte1 = new(std::nothrow) uint32_t[LUT_SIZE_8];
+    Check(lut8_byte1, "8-bit lookup table (byte1)");
+
+    lut8_byte0 = new(std::nothrow) uint32_t[LUT_SIZE_8];
+    Check(lut8_byte0, "8-bit lookup table (byte0)");
 
     for (register size_t elem = 0; elem < LUT_SIZE_8; ++elem)
     {
-        lut8[elem].value = ReverseBits<uint8_t>(elem, NUM_OF_BITS_8);
+        lut8_byte3[elem] = ReverseBits(UINT32(elem) << 24U);
+        lut8_byte2[elem] = ReverseBits(UINT32(elem) << 16U);
+        lut8_byte1[elem] = ReverseBits(UINT32(elem) << 8U);
+        lut8_byte0[elem] = ReverseBits(UINT32(elem) << 0U);
     }
 }
 
 auto inline Build4BitLut() noexcept -> void
 {
-    lut4 = new(std::nothrow) lut4_t[LUT_SIZE_4];
-    Check(lut4, "4-bit lookup table");
+    lut4_nibble7 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    Check(lut4_nibble7, "4-bit lookup table (nibble7)");
+
+    lut4_nibble6 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    Check(lut4_nibble6, "4-bit lookup table (nibble6)");
+
+    lut4_nibble5 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    Check(lut4_nibble5, "4-bit lookup table (nibble5)");
+
+    lut4_nibble4 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    Check(lut4_nibble4, "4-bit lookup table (nibble4)");
+
+    lut4_nibble3 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    Check(lut4_nibble3, "4-bit lookup table (nibble3)");
+
+    lut4_nibble2 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    Check(lut4_nibble2, "4-bit lookup table (nibble2)");
+
+    lut4_nibble1 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    Check(lut4_nibble1, "4-bit lookup table (nibble1)");
+
+    lut4_nibble0 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    Check(lut4_nibble0, "4-bit lookup table (nibble0)");
 
     for (register size_t elem = 0; elem < LUT_SIZE_4; ++elem)
     {
-        lut4[elem].value = ReverseBits<uint8_t>(elem, NUM_OF_BITS_4);
+        lut4_nibble7[elem] = ReverseBits(UINT32(elem) << 28U);
+        lut4_nibble6[elem] = ReverseBits(UINT32(elem) << 24U);
+        lut4_nibble5[elem] = ReverseBits(UINT32(elem) << 20U);
+        lut4_nibble4[elem] = ReverseBits(UINT32(elem) << 16U);
+        lut4_nibble3[elem] = ReverseBits(UINT32(elem) << 12U);
+        lut4_nibble2[elem] = ReverseBits(UINT32(elem) << 8U);
+        lut4_nibble1[elem] = ReverseBits(UINT32(elem) << 4U);
+        lut4_nibble0[elem] = ReverseBits(UINT32(elem) << 0U);
     }
 }
 
-template <typename T>
-auto inline ReverseBits(size_t const element, size_t const numOfBits) noexcept -> T
+auto inline ReverseBits(size_t const element) noexcept -> uint32_t
 {
-    register T currentBit{0};
-    register T reversed{0};
+    register uint32_t currentBit{0};
+    register uint32_t reversed{0};
 
-    for (register size_t bitIdx = 0; bitIdx < numOfBits; ++bitIdx)
+    for (register size_t bitIdx = 0; bitIdx < NUM_OF_BITS_32; ++bitIdx)
     {
         currentBit = (element >> bitIdx) & 1U;
 
         if ((bitIdx & 1U) == 0U)
         {
-            reversed |= currentBit << ((numOfBits - 1U) - (bitIdx >> 1U));
+            reversed |= currentBit << ((NUM_OF_BITS_32 - 1U) - (bitIdx >> 1U));
         }
         else
         {
-            reversed |= currentBit << (((numOfBits >> 1U) - 1U) - (bitIdx >> 1U));
+            reversed |= currentBit << (((NUM_OF_BITS_32 >> 1U) - 1U) - (bitIdx >> 1U));
         }
     }
 
@@ -186,88 +235,35 @@ auto inline ReverseBits32BitLut() noexcept -> void
 {
     for (register size_t elemIdx = 0; elemIdx < NUM_OF_SAMPLES; ++elemIdx)
     {
-        destination[elemIdx] = lut32[source[elemIdx]].value;
+        destination[elemIdx] = lut32[source[elemIdx]];
     }
 }
 
 auto inline ReverseBits16BitLut() noexcept -> void
 {
-    register uint32_t currentValue{0};
-
-    register lut16_t word1{0};
-    register lut16_t word0{0};
-
     for (register size_t elemIdx = 0; elemIdx < NUM_OF_SAMPLES; ++elemIdx)
     {
-        currentValue = source[elemIdx];
-
-        word1 = lut16[(currentValue >> 16U) & 16U];
-        word0 = lut16[(currentValue >> 0U) & 16U];
-
-        destination[elemIdx] = (UINT32(word0.msb8) << 24U) | (UINT32(word1.msb8) << 16U) |
-                               (UINT32(word0.lsb8) << 8U) | (UINT32(word1.lsb8) << 0U);
+        destination[elemIdx] = lut16_word1[(source[elemIdx] >> 16U) & 0xFFFFU] | lut16_word0[(source[elemIdx] >> 0U) & 0xFFFFU];
     }
 }
 
 auto inline ReverseBits8BitLut() noexcept -> void
 {
-    register uint32_t currentValue{0};
-
-    register lut8_t byte3{0};
-    register lut8_t byte2{0};
-    register lut8_t byte1{0};
-    register lut8_t byte0{0};
-
     for (register size_t elemIdx = 0; elemIdx < NUM_OF_SAMPLES; ++elemIdx)
     {
-        currentValue = source[elemIdx];
-
-        byte3 = lut8[(currentValue >> 24U) & 8U];
-        byte2 = lut8[(currentValue >> 16U) & 8U];
-        byte1 = lut8[(currentValue >> 8U) & 8U];
-        byte0 = lut8[(currentValue >> 0U) & 8U];
-
-        destination[elemIdx] = (UINT32(byte0.msb4) << 28U) | (UINT32(byte1.msb4) << 24U) |
-                               (UINT32(byte2.msb4) << 20U) | (UINT32(byte3.msb4) << 16U) |
-                               (UINT32(byte0.lsb4) << 12U) | (UINT32(byte1.lsb4) << 8U) |
-                               (UINT32(byte2.lsb4) << 4U) | (UINT32(byte3.lsb4) << 0U);
+        destination[elemIdx] = lut8_byte3[(source[elemIdx] >> 24U) & 0xFFU] | lut8_byte2[(source[elemIdx] >> 16U) & 0xFFU] |
+                               lut8_byte1[(source[elemIdx] >> 8U) & 0xFFU] | lut8_byte0[(source[elemIdx] >> 0U) & 0xFFU];
     }
 }
 
 auto inline ReverseBits4BitLut() noexcept -> void
 {
-    register uint32_t currentValue{0};
-
-    register lut4_t nibble7{0};
-    register lut4_t nibble6{0};
-    register lut4_t nibble5{0};
-    register lut4_t nibble4{0};
-    register lut4_t nibble3{0};
-    register lut4_t nibble2{0};
-    register lut4_t nibble1{0};
-    register lut4_t nibble0{0};
-
     for (register size_t elemIdx = 0; elemIdx < NUM_OF_SAMPLES; ++elemIdx)
     {
-        currentValue = source[elemIdx];
-
-        nibble7 = lut4[(currentValue >> 28U) & 4U];
-        nibble6 = lut4[(currentValue >> 24U) & 4U];
-        nibble5 = lut4[(currentValue >> 20U) & 4U];
-        nibble4 = lut4[(currentValue >> 16U) & 4U];
-        nibble3 = lut4[(currentValue >> 12U) & 4U];
-        nibble2 = lut4[(currentValue >> 8U) & 4U];
-        nibble1 = lut4[(currentValue >> 4U) & 4U];
-        nibble0 = lut4[(currentValue >> 0U) & 4U];
-
-        destination[elemIdx] = (UINT32(nibble0.msb2) << 30U) | (UINT32(nibble1.msb2) << 28U) |
-                               (UINT32(nibble2.msb2) << 26U) | (UINT32(nibble3.msb2) << 24U) |
-                               (UINT32(nibble4.msb2) << 22U) | (UINT32(nibble5.msb2) << 20U) |
-                               (UINT32(nibble6.msb2) << 18U) | (UINT32(nibble7.msb2) << 16U) |
-                               (UINT32(nibble0.lsb2) << 14U) | (UINT32(nibble1.lsb2) << 12U) |
-                               (UINT32(nibble2.lsb2) << 10U) | (UINT32(nibble3.lsb2) << 8U) |
-                               (UINT32(nibble4.lsb2) << 6U) | (UINT32(nibble5.lsb2) << 4U) |
-                               (UINT32(nibble6.lsb2) << 2U) | (UINT32(nibble7.lsb2) << 0U);
+        destination[elemIdx] = lut4_nibble7[(source[elemIdx] >> 28U) & 0xFU] | lut4_nibble6[(source[elemIdx] >> 24U) & 0xFU] |
+                               lut4_nibble5[(source[elemIdx] >> 20U) & 0xFU] | lut4_nibble4[(source[elemIdx] >> 16U) & 0xFU] |
+                               lut4_nibble3[(source[elemIdx] >> 12U) & 0xFU] | lut4_nibble2[(source[elemIdx] >> 8U) & 0xFU] |
+                               lut4_nibble1[(source[elemIdx] >> 4U) & 0xFU] | lut4_nibble0[(source[elemIdx] >> 0U) & 0xFU];
     }
 }
 
@@ -319,10 +315,35 @@ auto inline Cleanup() noexcept -> void
 
     delete[] lut32;
     lut32 = nullptr;
-    delete[] lut16;
-    lut16 = nullptr;
-    delete[] lut8;
-    lut8 = nullptr;
-    delete[] lut4;
-    lut4 = nullptr;
+
+    delete[] lut16_word1;
+    lut16_word1 = nullptr;
+    delete[] lut16_word0;
+    lut16_word0 = nullptr;
+
+    delete[] lut8_byte3;
+    lut8_byte3 = nullptr;
+    delete[] lut8_byte2;
+    lut8_byte2 = nullptr;
+    delete[] lut8_byte1;
+    lut8_byte1 = nullptr;
+    delete[] lut8_byte0;
+    lut8_byte0 = nullptr;
+
+    delete[] lut4_nibble7;
+    lut4_nibble7 = nullptr;
+    delete[] lut4_nibble6;
+    lut4_nibble6 = nullptr;
+    delete[] lut4_nibble5;
+    lut4_nibble5 = nullptr;
+    delete[] lut4_nibble4;
+    lut4_nibble4 = nullptr;
+    delete[] lut4_nibble3;
+    lut4_nibble3 = nullptr;
+    delete[] lut4_nibble2;
+    lut4_nibble2 = nullptr;
+    delete[] lut4_nibble1;
+    lut4_nibble1 = nullptr;
+    delete[] lut4_nibble0;
+    lut4_nibble0 = nullptr;
 }
