@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="RsExternalLinterProjectSettings">
+    <option name="channel" value="stable" />
+    <option name="runOnTheFly" value="true" />
+  </component>
+  <component name="RustfmtProjectSettings">
+    <option name="channel" value="stable" />
+    <option name="runRustfmtOnSave" value="true" />
+    <option name="useRustfmt" value="true" />
+  </component>
+</project>

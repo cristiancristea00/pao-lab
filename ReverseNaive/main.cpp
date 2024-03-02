@@ -30,6 +30,7 @@ auto main() -> int
     Setup();
     TestSpeed();
     Cleanup();
+
     return 0;
 }
 
@@ -40,14 +41,14 @@ auto inline Setup() noexcept -> void
 
     if (source == nullptr)
     {
-        std::cerr << "Failed to allocate memory for the source array." << '\n';
+        std::cerr << "Failed to allocate memory for the source array.\n";
         Cleanup();
         std::exit(EXIT_FAILURE);
     }
 
     if (destination == nullptr)
     {
-        std::cerr << "Failed to allocate memory for the destination array." << '\n';
+        std::cerr << "Failed to allocate memory for the destination array.\n";
         Cleanup();
         std::exit(EXIT_FAILURE);
     }
@@ -59,7 +60,7 @@ auto inline Setup() noexcept -> void
     std::generate(source, source + NUM_OF_SAMPLES, generator);
 }
 
-auto TestSpeed() noexcept -> void
+auto inline TestSpeed() noexcept -> void
 {
     auto const start = std::chrono::high_resolution_clock::now();
     ReverseBits();
@@ -82,17 +83,17 @@ auto inline ReverseBits() noexcept -> void
         currentValue = source[elemIdx];
         reversed = 0;
 
-        for (register uint32_t bitIdx = 0; bitIdx < NUM_OF_BITS; ++bitIdx)
+        for (register size_t bitIdx = 0; bitIdx < NUM_OF_BITS; ++bitIdx)
         {
             currentBit = (currentValue >> bitIdx) & 1U;
 
             if ((bitIdx & 1U) == 0U)
             {
-                reversed |= currentBit << ((NUM_OF_BITS - 1) - (bitIdx >> 1));
+                reversed |= currentBit << ((NUM_OF_BITS - 1U) - (bitIdx >> 1U));
             }
             else
             {
-                reversed |= currentBit << (((NUM_OF_BITS >> 1) - 1) - (bitIdx >> 1));
+                reversed |= currentBit << (((NUM_OF_BITS >> 1U) - 1U) - (bitIdx >> 1U));
             }
         }
 
@@ -100,7 +101,7 @@ auto inline ReverseBits() noexcept -> void
     }
 }
 
-auto Cleanup() noexcept -> void
+auto inline Cleanup() noexcept -> void
 {
     delete[] source;
     delete[] destination;
