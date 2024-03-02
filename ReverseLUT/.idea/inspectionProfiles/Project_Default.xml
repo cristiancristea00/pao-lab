@@ -1,9 +1,0 @@
-<component name="InspectionProjectProfileManager">
-  <profile version="1.0">
-    <option name="myName" value="Project Default" />
-    <inspection_tool class="ClangTidy" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="clangTidyChecks" value="-*,boost-*,bugprone-*,cert-*,clang-analyzer-*,concurrency-*,cppcoreguidelines-*,google-*,hicpp-*,misc-*,modernize-*,mpi-*,openmp-*,performance-*,readability-*,-hicpp-signed-bitwise" />
-      <option name="preferClangTidyFilesOverIDESettings" value="false" />
-    </inspection_tool>
-  </profile>
-</component>
