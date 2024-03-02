@@ -56,6 +56,8 @@
 
 [`Jump to source code`](ReverseSingleLUT/main.cpp#L185)
 
+*Space*: **16 GiB**
+
 *Execution Time*: **Out of Memory**
 
 *Execution Time (Compiler Optimized)*: **Out of Memory**
@@ -63,6 +65,8 @@
 #### 16-bit LUT
 
 [`Jump to source code`](ReverseSingleLUT/main.cpp#L193)
+
+*Space*: **128 KiB**
 
 *Execution Time*: **479 ms**
 
@@ -72,6 +76,8 @@
 
 [`Jump to source code`](ReverseSingleLUT/main.cpp#L212)
 
+*Space*: **256 B**
+
 *Execution Time*: **798 ms**
 
 *Execution Time (Compiler Optimized)*: **500 ms**
@@ -80,39 +86,49 @@
 
 [`Jump to source code`](ReverseSingleLUT/main.cpp#L237)
 
+*Space*: **8 B**
+
 *Execution Time*: **1350 ms**
 
 *Execution Time (Compiler Optimized)*: **821 ms**
 
 ### Multiple LUTs
 
-#### 32-bit LUT
+#### 32-bit LUTs
 
 [`Jump to source code`](ReverseLUT/main.cpp#L234)
+
+*Space*: **16 GiB**
 
 *Execution Time*: **Out of Memory**
 
 *Execution Time (Compiler Optimized)*: **Out of Memory**
 
-#### 16-bit LUT
+#### 16-bit LUTs
 
 [`Jump to source code`](ReverseLUT/main.cpp#L242)
+
+*Space*: **512 KiB**
 
 *Execution Time*: **550 ms**
 
 *Execution Time (Compiler Optimized)*: **428 ms**
 
-#### 8-bit LUT
+#### 8-bit LUTs
 
 [`Jump to source code`](ReverseLUT/main.cpp#L250)
+
+*Space*: **4 KiB**
 
 *Execution Time*: **548 ms**
 
 *Execution Time (Compiler Optimized)*: **295 ms**
 
-#### 4-bit LUT
+#### 4-bit LUTs
 
 [`Jump to source code`](ReverseLUT/main.cpp#L259)
+
+*Space*: **512 B**
 
 *Execution Time*: **861 ms**
 
