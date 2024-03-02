@@ -8,11 +8,11 @@
 
 *Threads*: **4**
 
-*Base Frequency*: **3.50 GHz**
+*Base Frequency*: **3.5 GHz**
 
-*Max Frequency*: **3.90 GHz**
+*Max Frequency*: **3.9 GHz**
 
-*Caches*: **6 MB**
+*Cache*: **6 MB**
 
 *Memory Channels*: **2**
 
