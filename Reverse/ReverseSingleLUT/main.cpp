@@ -201,8 +201,8 @@ auto inline ReverseBits16BitLut() noexcept -> void
     {
         currentValue = source[elemIdx];
 
-        word1 = lut16[(currentValue >> 16U) & 16U];
-        word0 = lut16[(currentValue >> 0U) & 16U];
+        word1 = lut16[(currentValue >> 16U) & 0xFFFFU];
+        word0 = lut16[(currentValue >> 0U) & 0xFFFFU];
 
         destination[elemIdx] = (UINT32(word0.msb8) << 24U) | (UINT32(word1.msb8) << 16U) |
                                (UINT32(word0.lsb8) << 8U) | (UINT32(word1.lsb8) << 0U);
@@ -222,10 +222,10 @@ auto inline ReverseBits8BitLut() noexcept -> void
     {
         currentValue = source[elemIdx];
 
-        byte3 = lut8[(currentValue >> 24U) & 8U];
-        byte2 = lut8[(currentValue >> 16U) & 8U];
-        byte1 = lut8[(currentValue >> 8U) & 8U];
-        byte0 = lut8[(currentValue >> 0U) & 8U];
+        byte3 = lut8[(currentValue >> 24U) & 0xFFU];
+        byte2 = lut8[(currentValue >> 16U) & 0xFFU];
+        byte1 = lut8[(currentValue >> 8U) & 0xFFU];
+        byte0 = lut8[(currentValue >> 0U) & 0xFFU];
 
         destination[elemIdx] = (UINT32(byte0.msb4) << 28U) | (UINT32(byte1.msb4) << 24U) |
                                (UINT32(byte2.msb4) << 20U) | (UINT32(byte3.msb4) << 16U) |
@@ -251,14 +251,14 @@ auto inline ReverseBits4BitLut() noexcept -> void
     {
         currentValue = source[elemIdx];
 
-        nibble7 = lut4[(currentValue >> 28U) & 4U];
-        nibble6 = lut4[(currentValue >> 24U) & 4U];
-        nibble5 = lut4[(currentValue >> 20U) & 4U];
-        nibble4 = lut4[(currentValue >> 16U) & 4U];
-        nibble3 = lut4[(currentValue >> 12U) & 4U];
-        nibble2 = lut4[(currentValue >> 8U) & 4U];
-        nibble1 = lut4[(currentValue >> 4U) & 4U];
-        nibble0 = lut4[(currentValue >> 0U) & 4U];
+        nibble7 = lut4[(currentValue >> 28U) & 0xFU];
+        nibble6 = lut4[(currentValue >> 24U) & 0xFU];
+        nibble5 = lut4[(currentValue >> 20U) & 0xFU];
+        nibble4 = lut4[(currentValue >> 16U) & 0xFU];
+        nibble3 = lut4[(currentValue >> 12U) & 0xFU];
+        nibble2 = lut4[(currentValue >> 8U) & 0xFU];
+        nibble1 = lut4[(currentValue >> 4U) & 0xFU];
+        nibble0 = lut4[(currentValue >> 0U) & 0xFU];
 
         destination[elemIdx] = (UINT32(nibble0.msb2) << 30U) | (UINT32(nibble1.msb2) << 28U) |
                                (UINT32(nibble2.msb2) << 26U) | (UINT32(nibble3.msb2) << 24U) |

@@ -68,9 +68,9 @@
 
 *Space*: **128 KiB**
 
-*Execution Time*: **479 ms**
+*Execution Time*: **594 ms**
 
-*Execution Time (Compiler Optimized)*: **322 ms**
+*Execution Time (Compiler Optimized)*: **389 ms**
 
 #### 8-bit LUT
 
