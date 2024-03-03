@@ -44,8 +44,6 @@
 
 ### Naive
 
-[`Jump to source code`](ReverseNaive/main.cpp#L75)
-
 *Execution Time*: **5634 ms**
 
 *Execution Time (Compiler Optimized)*: **3030 ms**
@@ -53,8 +51,6 @@
 ### Single LUT
 
 #### 32-bit LUT
-
-[`Jump to source code`](ReverseSingleLUT/main.cpp#L185)
 
 *Space*: **16 GiB**
 
@@ -64,8 +60,6 @@
 
 #### 16-bit LUT
 
-[`Jump to source code`](ReverseSingleLUT/main.cpp#L193)
-
 *Space*: **128 KiB**
 
 *Execution Time*: **594 ms**
@@ -74,8 +68,6 @@
 
 #### 8-bit LUT
 
-[`Jump to source code`](ReverseSingleLUT/main.cpp#L212)
-
 *Space*: **256 B**
 
 *Execution Time*: **798 ms**
@@ -83,8 +75,6 @@
 *Execution Time (Compiler Optimized)*: **500 ms**
 
 #### 4-bit LUT
-
-[`Jump to source code`](ReverseSingleLUT/main.cpp#L237)
 
 *Space*: **8 B**
 
@@ -96,8 +86,6 @@
 
 #### 32-bit LUTs
 
-[`Jump to source code`](ReverseLUT/main.cpp#L234)
-
 *Space*: **16 GiB**
 
 *Execution Time*: **Out of Memory**
@@ -105,8 +93,6 @@
 *Execution Time (Compiler Optimized)*: **Out of Memory**
 
 #### 16-bit LUTs
-
-[`Jump to source code`](ReverseLUT/main.cpp#L242)
 
 *Space*: **512 KiB**
 
@@ -116,8 +102,6 @@
 
 #### 8-bit LUTs
 
-[`Jump to source code`](ReverseLUT/main.cpp#L250)
-
 *Space*: **4 KiB**
 
 *Execution Time*: **548 ms**
@@ -126,10 +110,20 @@
 
 #### 4-bit LUTs
 
-[`Jump to source code`](ReverseLUT/main.cpp#L259)
-
 *Space*: **512 B**
 
 *Execution Time*: **861 ms**
 
 *Execution Time (Compiler Optimized)*: **422 ms**
+
+### OpenMP - No LUT
+
+#### Without Manual Loop Unrolling
+
+*Execution Time (Compiler Optimized)*: **94 ms**
+
+#### With Manual Loop Unrolling
+
+*Execution Time (Compiler Optimized)*: **95 ms**
+
+> **Note**: The compiler already unrolls the loop, so manual unrolling does not improve performance.
