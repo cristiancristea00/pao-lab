@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(ReverseOpenMP)
+project(ReverseSingleLUTOpenMP)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -16,11 +16,11 @@ set(OPTIMIZED_FLAGS "-Ofast -march=native -pipe -fno-builtin")
 set(CMAKE_CXX_FLAGS "${DEBUG_FLAGS} ${OPTIMIZED_FLAGS}")
 set(CMAKE_C_FLAGS "${DEBUG_FLAGS} ${OPTIMIZED_FLAGS}")
 
-add_executable(ReverseOpenMP main.cpp)
+add_executable(ReverseSingleLUTOpenMP main.cpp lut_types.h)
 
 find_package(OpenMP)
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(ReverseOpenMP PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(ReverseSingleLUTOpenMP PUBLIC OpenMP::OpenMP_CXX)
 endif()
 

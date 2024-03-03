@@ -127,3 +127,55 @@
 *Execution Time (Compiler Optimized)*: **95 ms**
 
 > **Note**: The compiler already unrolls the loop, so manual unrolling does not improve performance.
+
+### OpenMP - Single LUT
+
+#### 32-bit LUT
+
+*Space*: **16 GiB**
+
+*Execution Time (Compiler Optimized)*: **Out of Memory**
+
+#### 16-bit LUT
+
+*Space*: **128 KiB**
+
+*Execution Time (Compiler Optimized)*: **468 ms**
+
+#### 8-bit LUT
+
+*Space*: **256 B**
+
+*Execution Time (Compiler Optimized)*: **669 ms**
+
+#### 4-bit LUT
+
+*Space*: **8 B**
+
+*Execution Time (Compiler Optimized)*: **1186 ms**
+
+### OpenMP - Multiple LUTs
+
+#### 32-bit LUTs
+
+*Space*: **16 GiB**
+
+*Execution Time (Compiler Optimized)*: **Out of Memory**
+
+#### 16-bit LUTs
+
+*Space*: **512 KiB**
+
+*Execution Time (Compiler Optimized)*: **109 ms**
+
+#### 8-bit LUTs
+
+*Space*: **4 KiB**
+
+*Execution Time (Compiler Optimized)*: **79 ms**
+
+#### 4-bit LUTs
+
+*Space*: **512 B**
+
+*Execution Time (Compiler Optimized)*: **110 ms**
