@@ -108,7 +108,8 @@ auto inline TestSpeed() noexcept -> void
 auto inline ReverseBits() noexcept -> void
 {
     register uint32_t currentValue{0};
-    register uint32_t currentBit{0};
+    register uint32_t currentEvenBit{0};
+    register uint32_t currentOddBit{0};
     register uint32_t reversed{0};
 
     for (register size_t elemIdx = 0; elemIdx < NUM_OF_SAMPLES; ++elemIdx)
@@ -116,18 +117,13 @@ auto inline ReverseBits() noexcept -> void
         currentValue = source[elemIdx];
         reversed = 0;
 
-        for (register size_t bitIdx = 0; bitIdx < NUM_OF_BITS; ++bitIdx)
+        for (register size_t bitIdx = 0; bitIdx < NUM_OF_BITS; bitIdx += 2)
         {
-            currentBit = (currentValue >> bitIdx) & 1U;
+            currentEvenBit = (currentValue >> bitIdx) & 1U;
+            currentOddBit = (currentValue >> (bitIdx + 1U)) & 1U;
 
-            if ((bitIdx & 1U) == 0U)
-            {
-                reversed |= currentBit << ((NUM_OF_BITS - 1U) - (bitIdx >> 1U));
-            }
-            else
-            {
-                reversed |= currentBit << (((NUM_OF_BITS >> 1U) - 1U) - (bitIdx >> 1U));
-            }
+            reversed |= currentEvenBit << ((NUM_OF_BITS - 1U) - (bitIdx >> 1U));
+            reversed |= currentOddBit << (((NUM_OF_BITS >> 1U) - 1U) - (bitIdx >> 1U));
         }
 
         destination[elemIdx] = reversed;

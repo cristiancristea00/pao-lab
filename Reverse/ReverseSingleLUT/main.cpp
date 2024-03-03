@@ -215,21 +215,17 @@ auto inline Build4BitLut() noexcept -> void
 template <typename T>
 auto inline ReverseBits(size_t const element, size_t const numOfBits) noexcept -> T
 {
-    register T currentBit{0};
+    register T currentEvenBit{0};
+    register T currentOddBit{0};
     register T reversed{0};
 
-    for (register size_t bitIdx = 0; bitIdx < numOfBits; ++bitIdx)
+    for (register size_t bitIdx = 0; bitIdx < numOfBits; bitIdx += 2)
     {
-        currentBit = (element >> bitIdx) & 1U;
+        currentEvenBit = (element >> bitIdx) & 1U;
+        currentOddBit = (element >> (bitIdx + 1U)) & 1U;
 
-        if ((bitIdx & 1U) == 0U)
-        {
-            reversed |= currentBit << ((numOfBits - 1U) - (bitIdx >> 1U));
-        }
-        else
-        {
-            reversed |= currentBit << (((numOfBits >> 1U) - 1U) - (bitIdx >> 1U));
-        }
+        reversed |= currentEvenBit << ((numOfBits - 1U) - (bitIdx >> 1U));
+        reversed |= currentOddBit << (((numOfBits >> 1U) - 1U) - (bitIdx >> 1U));
     }
 
     return reversed;

@@ -264,21 +264,17 @@ auto inline Build4BitLut() noexcept -> void
 
 auto inline ReverseBits(size_t const element) noexcept -> uint32_t
 {
-    register uint32_t currentBit{0};
+    register uint32_t currentEvenBit{0};
+    register uint32_t currentOddBit{0};
     register uint32_t reversed{0};
 
-    for (register size_t bitIdx = 0; bitIdx < NUM_OF_BITS_32; ++bitIdx)
+    for (register size_t bitIdx = 0; bitIdx < NUM_OF_BITS_32; bitIdx += 2)
     {
-        currentBit = (element >> bitIdx) & 1U;
+        currentEvenBit = (element >> bitIdx) & 1U;
+        currentOddBit = (element >> (bitIdx + 1U)) & 1U;
 
-        if ((bitIdx & 1U) == 0U)
-        {
-            reversed |= currentBit << ((NUM_OF_BITS_32 - 1U) - (bitIdx >> 1U));
-        }
-        else
-        {
-            reversed |= currentBit << (((NUM_OF_BITS_32 >> 1U) - 1U) - (bitIdx >> 1U));
-        }
+        reversed |= currentEvenBit << ((NUM_OF_BITS_32 - 1U) - (bitIdx >> 1U));
+        reversed |= currentOddBit << (((NUM_OF_BITS_32 >> 1U) - 1U) - (bitIdx >> 1U));
     }
 
     return reversed;
