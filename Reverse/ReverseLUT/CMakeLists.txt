@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.27)
 project(ReverseLUT)
 
-set(CMAKE_GENERATOR "Ninja")
-
 set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_COLOR_DIAGNOSTICS ON)
