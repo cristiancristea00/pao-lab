@@ -44,9 +44,9 @@
 
 ### Naive
 
-*Execution Time*: **5634 ms**
+*Execution Time*: **4715 ms**
 
-*Execution Time (Compiler Optimized)*: **3030 ms**
+*Execution Time (Compiler Optimized)*: **365 ms**
 
 ### Single LUT
 
