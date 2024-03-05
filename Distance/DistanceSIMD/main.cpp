@@ -1,16 +1,17 @@
 #include <iostream>
-#include <chrono>
 #include <random>
 #include <algorithm>
 #include <ranges>
 #include <thread>
 #include <functional>
+#include <immintrin.h>
 
 
 enum Constants
 {
     NUM_OF_POINTS = 10'000UL,
     SEED = 0xDEADBEEF42UL,
+    FLOAT_VECTOR_SIZE = 8
 };
 
 
@@ -26,9 +27,17 @@ public:
     {
         float sum{0.0};
 
-        for (auto const & [left, right]: std::views::zip(lhs.features, rhs.features))
+        for (size_t idx = 0; idx < DIMENSIONS; idx += FLOAT_VECTOR_SIZE)
         {
-            sum += std::abs(left - right);
+            __m256 left = _mm256_loadu_ps(lhs.features + idx);
+            __m256 right = _mm256_loadu_ps(rhs.features + idx);
+            __m256 diff = _mm256_sub_ps(left, right);
+            __m256 absDiff = _mm256_andnot_ps(_mm256_set1_ps(-0.0F), diff);
+            __m256 permuted = _mm256_permute2f128_ps(absDiff, absDiff, 1);
+            __m256 sum0 = _mm256_add_ps(absDiff, permuted);
+            __m256 sum1 = _mm256_hadd_ps(sum0, sum0);
+            __m256 sum2 = _mm256_hadd_ps(sum1, sum1);
+            sum += _mm256_cvtss_f32(sum2);
         }
 
         return sum;
@@ -37,12 +46,18 @@ public:
     static float getL2Norm(Descriptor const & lhs, Descriptor const & rhs) noexcept
     {
         float sum{0.0};
-        float diff{0.0};
 
-        for (auto const & [left, right]: std::views::zip(lhs.features, rhs.features))
+        for (size_t idx = 0; idx < DIMENSIONS; idx += FLOAT_VECTOR_SIZE)
         {
-            diff = left - right;
-            sum += diff * diff;
+            __m256 left = _mm256_loadu_ps(lhs.features + idx);
+            __m256 right = _mm256_loadu_ps(rhs.features + idx);
+            __m256 diff = _mm256_sub_ps(left, right);
+            __m256 squared = _mm256_mul_ps(diff, diff);
+            __m256 permuted = _mm256_permute2f128_ps(squared, squared, 1);
+            __m256 sum0 = _mm256_add_ps(squared, permuted);
+            __m256 sum1 = _mm256_hadd_ps(sum0, sum0);
+            __m256 sum2 = _mm256_hadd_ps(sum1, sum1);
+            sum += _mm256_cvtss_f32(sum2);
         }
 
         return std::sqrt(sum);
@@ -151,4 +166,3 @@ auto inline Cooldown(std::chrono::seconds const & seconds) -> void
 {
     std::this_thread::sleep_for(seconds);
 }
-
