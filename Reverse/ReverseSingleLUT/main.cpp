@@ -58,8 +58,11 @@ Execution Time (Compiler Optimized): 821 ms
 #include <functional>
 #include <bitset>
 #include <thread>
+#include <new>
 
 #include "lut_types.h"
+
+#define ALIGN    std::align_val_t(std::hardware_destructive_interference_size)
 
 #define UINT32(val)    static_cast<uint32_t>(val)
 
@@ -155,10 +158,10 @@ auto main() -> int
 
 auto inline Setup() noexcept -> void
 {
-    source = new(std::nothrow) uint32_t[NUM_OF_SAMPLES];
+    source = new(ALIGN, std::nothrow) uint32_t[NUM_OF_SAMPLES];
     Check(source, "source array");
 
-    destination = new(std::nothrow) uint32_t[NUM_OF_SAMPLES];
+    destination = new(ALIGN, std::nothrow) uint32_t[NUM_OF_SAMPLES];
     Check(destination, "destination array");
 
     std::mt19937 randomEngine{SEED};
@@ -170,7 +173,7 @@ auto inline Setup() noexcept -> void
 
 auto inline Build32BitLut() noexcept -> void
 {
-    lut32 = new(std::nothrow) lut32_t[LUT_SIZE_32];
+    lut32 = new(ALIGN, std::nothrow) lut32_t[LUT_SIZE_32];
     Check(lut32, "32-bit lookup table");
 
     for (register size_t elem = 0; elem < LUT_SIZE_32; ++elem)
@@ -181,7 +184,7 @@ auto inline Build32BitLut() noexcept -> void
 
 auto inline Build16BitLut() noexcept -> void
 {
-    lut16 = new(std::nothrow) lut16_t[LUT_SIZE_16];
+    lut16 = new(ALIGN, std::nothrow) lut16_t[LUT_SIZE_16];
     Check(lut16, "16-bit lookup table");
 
     for (register size_t elem = 0; elem < LUT_SIZE_16; ++elem)
@@ -192,7 +195,7 @@ auto inline Build16BitLut() noexcept -> void
 
 auto inline Build8BitLut() noexcept -> void
 {
-    lut8 = new(std::nothrow) lut8_t[LUT_SIZE_8];
+    lut8 = new(ALIGN, std::nothrow) lut8_t[LUT_SIZE_8];
     Check(lut8, "8-bit lookup table");
 
     for (register size_t elem = 0; elem < LUT_SIZE_8; ++elem)
@@ -203,7 +206,7 @@ auto inline Build8BitLut() noexcept -> void
 
 auto inline Build4BitLut() noexcept -> void
 {
-    lut4 = new(std::nothrow) lut4_t[LUT_SIZE_4];
+    lut4 = new(ALIGN, std::nothrow) lut4_t[LUT_SIZE_4];
     Check(lut4, "4-bit lookup table");
 
     for (register size_t elem = 0; elem < LUT_SIZE_4; ++elem)

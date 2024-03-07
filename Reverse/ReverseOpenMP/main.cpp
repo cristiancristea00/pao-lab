@@ -42,9 +42,12 @@ Execution Time (Compiler Optimized): 95 ms
 #include <bitset>
 #include <functional>
 #include <thread>
+#include <new>
 
 #include "omp.h"
 
+
+#define ALIGN    std::align_val_t(std::hardware_destructive_interference_size)
 
 enum Constants
 {
@@ -96,8 +99,8 @@ auto main() -> int
 
 auto inline Setup() noexcept -> void
 {
-    source = new(std::nothrow) uint32_t[NUM_OF_SAMPLES];
-    destination = new(std::nothrow) uint32_t[NUM_OF_SAMPLES];
+    source = new(ALIGN, std::nothrow) uint32_t[NUM_OF_SAMPLES];
+    destination = new(ALIGN, std::nothrow) uint32_t[NUM_OF_SAMPLES];
 
     if (source == nullptr)
     {

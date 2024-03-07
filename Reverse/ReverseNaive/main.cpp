@@ -35,7 +35,10 @@ Execution Time (Compiler Optimized): 365 ms
 #include <random>
 #include <algorithm>
 #include <chrono>
+#include <new>
 
+
+#define ALIGN    std::align_val_t(std::hardware_destructive_interference_size)
 
 enum Constants
 {
@@ -69,8 +72,8 @@ auto main() -> int
 
 auto inline Setup() noexcept -> void
 {
-    source = new(std::nothrow) uint32_t[NUM_OF_SAMPLES];
-    destination = new(std::nothrow) uint32_t[NUM_OF_SAMPLES];
+    source = new(ALIGN, std::nothrow) uint32_t[NUM_OF_SAMPLES];
+    destination = new(ALIGN, std::nothrow) uint32_t[NUM_OF_SAMPLES];
 
     if (source == nullptr)
     {

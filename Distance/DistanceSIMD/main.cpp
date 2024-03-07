@@ -5,7 +5,10 @@
 #include <thread>
 #include <functional>
 #include <immintrin.h>
+#include <new>
 
+
+#define ALIGN    std::hardware_destructive_interference_size
 
 enum Constants
 {
@@ -70,7 +73,7 @@ private:
     static std::uniform_real_distribution<float> randomDistribution;
     static std::function<float()> generator;
 
-    float features[DIMENSIONS];
+    float features[DIMENSIONS] alignas(ALIGN);
 };
 
 std::mt19937 Descriptor::randomEngine{SEED};

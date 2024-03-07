@@ -54,9 +54,12 @@ Execution Time (Compiler Optimized): 110 ms
 #include <functional>
 #include <bitset>
 #include <thread>
+#include <new>
 
 #include "omp.h"
 
+
+#define ALIGN    std::align_val_t(std::hardware_destructive_interference_size)
 
 #define UINT32(val)    static_cast<uint32_t>(val)
 
@@ -159,10 +162,10 @@ auto main() -> int
 
 auto inline Setup() noexcept -> void
 {
-    source = new(std::nothrow) uint32_t[NUM_OF_SAMPLES];
+    source = new(ALIGN, std::nothrow) uint32_t[NUM_OF_SAMPLES];
     Check(source, "source array");
 
-    destination = new(std::nothrow) uint32_t[NUM_OF_SAMPLES];
+    destination = new(ALIGN, std::nothrow) uint32_t[NUM_OF_SAMPLES];
     Check(destination, "destination array");
 
     std::mt19937 randomEngine{SEED};
@@ -174,7 +177,7 @@ auto inline Setup() noexcept -> void
 
 auto inline Build32BitLut() noexcept -> void
 {
-    lut32 = new(std::nothrow) uint32_t[LUT_SIZE_32];
+    lut32 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_32];
     Check(lut32, "32-bit lookup table");
 
     #pragma omp parallel for
@@ -186,10 +189,10 @@ auto inline Build32BitLut() noexcept -> void
 
 auto inline Build16BitLut() noexcept -> void
 {
-    lut16_word1 = new(std::nothrow) uint32_t[LUT_SIZE_16];
+    lut16_word1 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_16];
     Check(lut16_word1, "16-bit lookup table (word1)");
 
-    lut16_word0 = new(std::nothrow) uint32_t[LUT_SIZE_16];
+    lut16_word0 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_16];
     Check(lut16_word0, "16-bit lookup table (word0)");
 
     #pragma omp parallel for
@@ -202,16 +205,16 @@ auto inline Build16BitLut() noexcept -> void
 
 auto inline Build8BitLut() noexcept -> void
 {
-    lut8_byte3 = new(std::nothrow) uint32_t[LUT_SIZE_8];
+    lut8_byte3 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_8];
     Check(lut8_byte3, "8-bit lookup table (byte3)");
 
-    lut8_byte2 = new(std::nothrow) uint32_t[LUT_SIZE_8];
+    lut8_byte2 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_8];
     Check(lut8_byte2, "8-bit lookup table (byte2)");
 
-    lut8_byte1 = new(std::nothrow) uint32_t[LUT_SIZE_8];
+    lut8_byte1 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_8];
     Check(lut8_byte1, "8-bit lookup table (byte1)");
 
-    lut8_byte0 = new(std::nothrow) uint32_t[LUT_SIZE_8];
+    lut8_byte0 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_8];
     Check(lut8_byte0, "8-bit lookup table (byte0)");
 
     #pragma omp parallel for
@@ -226,28 +229,28 @@ auto inline Build8BitLut() noexcept -> void
 
 auto inline Build4BitLut() noexcept -> void
 {
-    lut4_nibble7 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    lut4_nibble7 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_4];
     Check(lut4_nibble7, "4-bit lookup table (nibble7)");
 
-    lut4_nibble6 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    lut4_nibble6 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_4];
     Check(lut4_nibble6, "4-bit lookup table (nibble6)");
 
-    lut4_nibble5 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    lut4_nibble5 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_4];
     Check(lut4_nibble5, "4-bit lookup table (nibble5)");
 
-    lut4_nibble4 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    lut4_nibble4 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_4];
     Check(lut4_nibble4, "4-bit lookup table (nibble4)");
 
-    lut4_nibble3 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    lut4_nibble3 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_4];
     Check(lut4_nibble3, "4-bit lookup table (nibble3)");
 
-    lut4_nibble2 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    lut4_nibble2 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_4];
     Check(lut4_nibble2, "4-bit lookup table (nibble2)");
 
-    lut4_nibble1 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    lut4_nibble1 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_4];
     Check(lut4_nibble1, "4-bit lookup table (nibble1)");
 
-    lut4_nibble0 = new(std::nothrow) uint32_t[LUT_SIZE_4];
+    lut4_nibble0 = new(ALIGN, std::nothrow) uint32_t[LUT_SIZE_4];
     Check(lut4_nibble0, "4-bit lookup table (nibble0)");
 
     #pragma omp parallel for

@@ -47,3 +47,4 @@ using lut4_t = union LUT4_STRUCT
 };
 
 #endif // LUT_TYPES_H
+
