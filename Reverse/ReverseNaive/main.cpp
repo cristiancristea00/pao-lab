@@ -27,7 +27,6 @@ Compiler: gcc 13.2.0
 
 /*
 Execution Time: 4715 ms
-
 Execution Time (Compiler Optimized): 365 ms
 */
 
