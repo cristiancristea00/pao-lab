@@ -26,25 +26,25 @@ Compiler: gcc 13.2.0
 */
 
 /*
-## Threaded Chunk
+## Threaded Chunked
 
-Execution Time: TBD ms
-Execution Time (Compiler Optimized): TBD ms
+Execution Time: 1209 ms
+Execution Time (Compiler Optimized): 96 ms
+
+## Threaded Chunked - Unrolled
+
+Execution Time: 345 ms
+Execution Time (Compiler Optimized): 48 ms
 
 ## Threaded Interleaved
 
-Execution Time: TBD ms
-Execution Time (Compiler Optimized): TBD ms
-
-## Threaded Chunk - Unrolled
-
-Execution Time: TBD ms
-Execution Time (Compiler Optimized): TBD ms
+Execution Time: 1323 ms
+Execution Time (Compiler Optimized): 378 ms
 
 ## Threaded Interleaved - Unrolled
 
-Execution Time: TBD ms
-Execution Time (Compiler Optimized): TBD ms
+Execution Time: 354 ms
+Execution Time (Compiler Optimized): 212 ms
 */
 
 #include <iostream>

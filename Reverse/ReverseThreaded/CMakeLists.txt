@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(ReverseNaiveThreaded)
+project(ReverseThreaded)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -21,4 +21,4 @@ set(CMAKE_C_FLAGS_DEBUG "${DEBUG_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${OPTIMIZED_FLAGS}")
 set(CMAKE_C_FLAGS_RELEASE "${OPTIMIZED_FLAGS}")
 
-add_executable(ReverseNaiveThreaded main.cpp)
+add_executable(ReverseThreaded main.cpp)

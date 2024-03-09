@@ -29,34 +29,34 @@ Compiler: gcc 13.2.0
 ## 32-bit LUTs
 
 Space: 16 GiB
-Execution Time - Chunk: Out of Memory
-Execution Time - Chunk (Compiler Optimized): Out of Memory
+Execution Time - Chunked: Out of Memory
+Execution Time - Chunked (Compiler Optimized): Out of Memory
 Execution Time - Interleaved: Out of Memory
 Execution Time - Interleaved (Compiler Optimized): Out of Memory
 
 ## 16-bit LUTs
 
 Space: 512 KiB
-Execution Time - Chunk: TBD ms
-Execution Time - Chunk (Compiler Optimized): TBD ms
-Execution Time - Interleaved: TBD ms
-Execution Time - Interleaved (Compiler Optimized): TBD ms
+Execution Time - Chunked: 153 ms
+Execution Time - Chunked (Compiler Optimized): 113 ms
+Execution Time - Interleaved: 117 ms
+Execution Time - Interleaved (Compiler Optimized): 86 ms
 
 ## 8-bit LUTs
 
 Space: 4 KiB
-Execution Time - Chunk: TBD ms
-Execution Time - Chunk (Compiler Optimized): TBD ms
-Execution Time - Interleaved: TBD ms
-Execution Time - Interleaved (Compiler Optimized): TBD ms
+Execution Time - Chunked: 149 ms
+Execution Time - Chunked (Compiler Optimized): 89 ms
+Execution Time - Interleaved: 102 ms
+Execution Time - Interleaved (Compiler Optimized): 42 ms
 
 ## 4-bit LUTs
 
 Space: 512 B
-Execution Time - Chunk: TBD ms
-Execution Time - Chunk (Compiler Optimized): TBD ms
-Execution Time - Interleaved: TBD ms
-Execution Time - Interleaved (Compiler Optimized): TBD ms
+Execution Time - Chunked: 227 ms
+Execution Time - Chunked (Compiler Optimized): 111 ms
+Execution Time - Interleaved: 179 ms
+Execution Time - Interleaved (Compiler Optimized): 66 ms
 */
 
 #include <iostream>

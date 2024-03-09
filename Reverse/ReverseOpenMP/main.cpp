@@ -28,13 +28,13 @@ Compiler: gcc 13.2.0
 /*
 ## Without Manual Loop Unrolling
 
-Execution Time: TBD ms
-Execution Time (Compiler Optimized): TBD ms
+Execution Time: 15236 ms
+Execution Time (Compiler Optimized): 94 ms
 
 ## With Manual Loop Unrolling
 
-Execution Time: TBD ms
-Execution Time (Compiler Optimized): TBD ms
+Execution Time: 2548 ms
+Execution Time (Compiler Optimized): 95 ms
 */
 
 #include <iostream>
