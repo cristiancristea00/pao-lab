@@ -81,11 +81,11 @@ std::uniform_real_distribution<float> Descriptor::randomDistribution{0.0, 1.0};
 std::function<float()> Descriptor::generator = []() -> float { return randomDistribution(randomEngine); };
 
 
-static Descriptor set1[NUM_OF_POINTS];
-static Descriptor set2[NUM_OF_POINTS];
+static Descriptor set1[NUM_OF_POINTS] alignas(ALIGN);
+static Descriptor set2[NUM_OF_POINTS] alignas(ALIGN);
 
-static size_t indicesL1[NUM_OF_POINTS];
-static size_t indicesL2[NUM_OF_POINTS];
+static size_t indicesL1[NUM_OF_POINTS] alignas(ALIGN);
+static size_t indicesL2[NUM_OF_POINTS] alignas(ALIGN);
 
 auto inline TestSpeed(std::function<void()> const & function, std::string_view const message) noexcept -> void;
 
@@ -126,11 +126,11 @@ auto inline CompareL1() noexcept -> void
     float minDistance{0.0};
     float currentDistance{0.0};
 
-    for (int idx1 = 0; idx1 < NUM_OF_POINTS; ++idx1)
+    for (size_t idx1 = 0; idx1 < NUM_OF_POINTS; ++idx1)
     {
         minDistance = std::numeric_limits<float>::max();
 
-        for (int idx2 = 0; idx2 < NUM_OF_POINTS; ++idx2)
+        for (size_t idx2 = 0; idx2 < NUM_OF_POINTS; ++idx2)
         {
             currentDistance = Descriptor::getL1Norm(set1[idx1], set2[idx2]);
 
@@ -148,11 +148,11 @@ auto inline CompareL2() noexcept -> void
     float minDistance{0.0};
     float currentDistance{0.0};
 
-    for (int idx1 = 0; idx1 < NUM_OF_POINTS; ++idx1)
+    for (size_t idx1 = 0; idx1 < NUM_OF_POINTS; ++idx1)
     {
         minDistance = std::numeric_limits<float>::max();
 
-        for (int idx2 = 0; idx2 < NUM_OF_POINTS; ++idx2)
+        for (size_t idx2 = 0; idx2 < NUM_OF_POINTS; ++idx2)
         {
             currentDistance = Descriptor::getL2Norm(set1[idx1], set2[idx2]);
 

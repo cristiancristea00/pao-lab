@@ -29,22 +29,26 @@ Compiler: gcc 13.2.0
 ## 32-bit LUTs
 
 Space: 16 GiB
-Execution Time (Compiler Optimized): Out of Memory
+Execution Time: TBD ms
+Execution Time (Compiler Optimized): TBD ms
 
 ## 16-bit LUTs
 
 Space: 512 KiB
-Execution Time (Compiler Optimized): 109 ms
+Execution Time: TBD ms
+Execution Time (Compiler Optimized): TBD ms
 
 ## 8-bit LUTs
 
 Space: 4 KiB
-Execution Time (Compiler Optimized): 79 ms
+Execution Time: TBD ms
+Execution Time (Compiler Optimized): TBD ms
 
 ## 4-bit LUTs
 
 Space: 512 B
-Execution Time (Compiler Optimized): 110 ms
+Execution Time: TBD ms
+Execution Time (Compiler Optimized): TBD ms
 */
 
 #include <iostream>

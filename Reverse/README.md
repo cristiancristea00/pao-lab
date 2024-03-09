@@ -134,6 +134,18 @@
 
 *Execution Time (Compiler Optimized)*: **TBD ms**
 
+#### Threaded Chunk - Unrolled
+
+*Execution Time*: **TBD ms**
+
+*Execution Time (Compiler Optimized)*: **TBD ms**
+
+#### Threaded Interleaved - Unrolled
+
+*Execution Time*: **TBD ms**
+
+*Execution Time (Compiler Optimized)*: **TBD ms**
+
 ***
 
 ### Threaded - Single LUT
@@ -244,9 +256,13 @@
 
 #### Without Manual Loop Unrolling
 
+*Execution Time*: **TBD ms**
+
 *Execution Time (Compiler Optimized)*: **94 ms**
 
 #### With Manual Loop Unrolling
+
+*Execution Time*: **TBD ms**
 
 *Execution Time (Compiler Optimized)*: **95 ms**
 
@@ -260,11 +276,15 @@
 
 *Space*: **16 GiB**
 
+*Execution Time*: **Out of Memory**
+
 *Execution Time (Compiler Optimized)*: **Out of Memory**
 
 #### 16-bit LUT
 
 *Space*: **128 KiB**
+
+*Execution Time*: **TBD ms**
 
 *Execution Time (Compiler Optimized)*: **468 ms**
 
@@ -272,11 +292,15 @@
 
 *Space*: **256 B**
 
+*Execution Time*: **TBD ms**
+
 *Execution Time (Compiler Optimized)*: **669 ms**
 
 #### 4-bit LUT
 
 *Space*: **8 B**
+
+*Execution Time*: **TBD ms**
 
 *Execution Time (Compiler Optimized)*: **1186 ms**
 
@@ -288,11 +312,15 @@
 
 *Space*: **16 GiB**
 
+*Execution Time*: **TBD ms**
+
 *Execution Time (Compiler Optimized)*: **Out of Memory**
 
 #### 16-bit LUTs
 
 *Space*: **512 KiB**
+
+*Execution Time*: **TBD ms**
 
 *Execution Time (Compiler Optimized)*: **109 ms**
 
@@ -300,10 +328,14 @@
 
 *Space*: **4 KiB**
 
+*Execution Time*: **TBD ms**
+
 *Execution Time (Compiler Optimized)*: **79 ms**
 
 #### 4-bit LUTs
 
 *Space*: **512 B**
+
+*Execution Time*: **TBD ms**
 
 *Execution Time (Compiler Optimized)*: **110 ms**

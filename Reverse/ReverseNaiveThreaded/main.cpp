@@ -35,6 +35,16 @@ Execution Time (Compiler Optimized): TBD ms
 
 Execution Time: TBD ms
 Execution Time (Compiler Optimized): TBD ms
+
+## Threaded Chunk - Unrolled
+
+Execution Time: TBD ms
+Execution Time (Compiler Optimized): TBD ms
+
+## Threaded Interleaved - Unrolled
+
+Execution Time: TBD ms
+Execution Time (Compiler Optimized): TBD ms
 */
 
 #include <iostream>
@@ -62,13 +72,24 @@ enum Constants
     SEED = 0xDEADBEEF42UL,
 };
 
+#define REVERSE1(RES, VAL, IDX, LOC)    RES |= (((VAL) >> (IDX)) & 1U) << (((LOC) - 1U) - ((IDX) >> 1U));
+#define REVERSE2(RES, VAL, IDX)         REVERSE1(RES, VAL, IDX, NUM_OF_BITS) REVERSE1(RES, VAL, IDX + 1U, NUM_OF_BITS >> 1U)
+#define REVERSE4(RES, VAL, IDX)         REVERSE2(RES, VAL, IDX) REVERSE2(RES, VAL, IDX + 2U)
+#define REVERSE8(RES, VAL, IDX)         REVERSE4(RES, VAL, IDX) REVERSE4(RES, VAL, IDX + 4U)
+#define REVERSE(RES, VAL)               REVERSE8(RES, VAL, 0U) REVERSE8(RES, VAL, 8U) REVERSE8(RES, VAL, 16U) REVERSE8(RES, VAL, 24U)
+
+
 
 auto inline Setup() noexcept -> void;
 
-auto INLINE ReverseSingleElement(uint32_t * const __restrict dst, uint32_t const * const __restrict src) noexcept -> void;
+auto inline ReverseBits(size_t const start, size_t const end, size_t const step) -> void;
+auto inline ReverseBitsUnrolled(size_t const start, size_t const end, size_t const step) -> void;
 
-auto inline ReverseBitsThreadedChunk() noexcept -> void;
-auto inline ReverseBitsThreadedInterleaved() noexcept -> void;
+auto INLINE ReverseSingleElement(uint32_t * const __restrict dst, uint32_t const * const __restrict src) noexcept -> void;
+auto INLINE ReverseSingleElementUnrolled(uint32_t * const __restrict dst, uint32_t const * const __restrict src) noexcept -> void;
+
+auto inline ReverseBitsThreadedChunk(std::function<void(size_t, size_t, size_t)> const & function) noexcept -> void;
+auto inline ReverseBitsThreadedInterleaved(std::function<void(size_t, size_t, size_t)> const & function) noexcept -> void;
 
 auto inline PrintValues(uint32_t const source, uint32_t const destination) noexcept -> void;
 
@@ -88,13 +109,17 @@ static uint32_t * destination{nullptr};
 auto main() -> int
 {
     Setup();
-    TestSpeed(ReverseBitsThreadedChunk, "ReverseBitsThreadedChunk");
+    TestSpeed([&]() -> void { ReverseBitsThreadedChunk(ReverseBits); }, "ReverseBitsThreadedChunk");
+    Cooldown();
+    TestSpeed([&]() -> void { ReverseBitsThreadedChunk(ReverseBitsUnrolled); }, "ReverseBitsThreadedChunk (Unrolled)");
     Cleanup();
 
     Cooldown();
 
     Setup();
-    TestSpeed(ReverseBitsThreadedInterleaved, "ReverseBitsThreadedInterleaved");
+    TestSpeed([&]() -> void { ReverseBitsThreadedInterleaved(ReverseBits); }, "ReverseBitsThreadedInterleaved");
+    Cooldown();
+    TestSpeed([&]() -> void { ReverseBitsThreadedInterleaved(ReverseBitsUnrolled); }, "ReverseBitsThreadedInterleaved (Unrolled)");
     Cleanup();
 
     return 0;
@@ -113,6 +138,22 @@ auto inline Setup() noexcept -> void
 
     auto generator = [&]() -> uint32_t { return randomDistribution(randomEngine); };
     std::generate(source, source + NUM_OF_SAMPLES, generator);
+}
+
+auto inline ReverseBits(size_t const start, size_t const end, size_t const step) -> void
+{
+    for (register size_t elemIdx = start; elemIdx < end; elemIdx += step)
+    {
+        ReverseSingleElement(destination + elemIdx, source + elemIdx);
+    }
+}
+
+auto inline ReverseBitsUnrolled(size_t const start, size_t const end, size_t const step) -> void
+{
+    for (register size_t elemIdx = start; elemIdx < end; elemIdx += step)
+    {
+        ReverseSingleElementUnrolled(destination + elemIdx, source + elemIdx);
+    }
 }
 
 auto INLINE ReverseSingleElement(uint32_t * const __restrict dst, uint32_t const * const __restrict src) noexcept -> void
@@ -134,15 +175,17 @@ auto INLINE ReverseSingleElement(uint32_t * const __restrict dst, uint32_t const
     *dst = reversed;
 }
 
-auto inline ReverseBits(size_t const start, size_t const end, size_t const step) -> void
+auto INLINE ReverseSingleElementUnrolled(uint32_t * const __restrict dst, uint32_t const * const __restrict src) noexcept -> void
 {
-    for (register size_t elemIdx = start; elemIdx < end; elemIdx += step)
-    {
-        ReverseSingleElement(destination + elemIdx, source + elemIdx);
-    }
+    register uint32_t currentValue{*src};
+    register uint32_t reversed{0};
+
+    REVERSE(reversed, currentValue)
+
+    *dst = reversed;
 }
 
-auto inline ReverseBitsThreadedChunk() noexcept -> void
+auto inline ReverseBitsThreadedChunk(std::function<void(size_t, size_t, size_t)> const & function) noexcept -> void
 {
     std::vector<std::unique_ptr<std::thread>> threads;
 
@@ -153,7 +196,7 @@ auto inline ReverseBitsThreadedChunk() noexcept -> void
     {
         start = threadIdx * (NUM_OF_SAMPLES / NUM_OF_THREADS);
         end = start + (NUM_OF_SAMPLES / NUM_OF_THREADS);
-        threads.emplace_back(std::make_unique<std::thread>(ReverseBits, start, end, 1));
+        threads.emplace_back(std::make_unique<std::thread>(function, start, end, 1));
     }
 
     for (auto const & thread: threads)
@@ -162,13 +205,13 @@ auto inline ReverseBitsThreadedChunk() noexcept -> void
     }
 }
 
-auto inline ReverseBitsThreadedInterleaved() noexcept -> void
+auto inline ReverseBitsThreadedInterleaved(std::function<void(size_t, size_t, size_t)> const & function) noexcept -> void
 {
     std::vector<std::unique_ptr<std::thread>> threads;
 
     for (size_t threadIdx = 0; threadIdx < NUM_OF_THREADS; ++threadIdx)
     {
-        threads.emplace_back(std::make_unique<std::thread>(ReverseBits, threadIdx, NUM_OF_SAMPLES, NUM_OF_THREADS));
+        threads.emplace_back(std::make_unique<std::thread>(function, threadIdx, NUM_OF_SAMPLES, NUM_OF_THREADS));
     }
 
     for (auto const & thread: threads)

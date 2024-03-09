@@ -28,11 +28,13 @@ Compiler: gcc 13.2.0
 /*
 ## Without Manual Loop Unrolling
 
-Execution Time (Compiler Optimized): 94 ms
+Execution Time: TBD ms
+Execution Time (Compiler Optimized): TBD ms
 
 ## With Manual Loop Unrolling
 
-Execution Time (Compiler Optimized): 95 ms
+Execution Time: TBD ms
+Execution Time (Compiler Optimized): TBD ms
 */
 
 #include <iostream>
@@ -57,11 +59,11 @@ enum Constants
 };
 
 
-#define REVERSE1(RES, VAL, IDX, LOC)    do { RES |= (((VAL) >> (IDX)) & 1U) << (((LOC) - 1U) - ((IDX) >> 1U));                                 } while (false)
-#define REVERSE2(RES, VAL, IDX)         do { REVERSE1(RES, VAL, IDX, NUM_OF_BITS); REVERSE1(RES, VAL, IDX + 1U, NUM_OF_BITS >> 1U);            } while (false)
-#define REVERSE4(RES, VAL, IDX)         do { REVERSE2(RES, VAL, IDX); REVERSE2(RES, VAL, IDX + 2U);                                            } while (false)
-#define REVERSE8(RES, VAL, IDX)         do { REVERSE4(RES, VAL, IDX); REVERSE4(RES, VAL, IDX + 4U);                                            } while (false)
-#define REVERSE(RES, VAL)               do { REVERSE8(RES, VAL, 0U); REVERSE8(RES, VAL, 8U); REVERSE8(RES, VAL, 16U); REVERSE8(RES, VAL, 24U); } while (false)
+#define REVERSE1(RES, VAL, IDX, LOC)    RES |= (((VAL) >> (IDX)) & 1U) << (((LOC) - 1U) - ((IDX) >> 1U));
+#define REVERSE2(RES, VAL, IDX)         REVERSE1(RES, VAL, IDX, NUM_OF_BITS) REVERSE1(RES, VAL, IDX + 1U, NUM_OF_BITS >> 1U)
+#define REVERSE4(RES, VAL, IDX)         REVERSE2(RES, VAL, IDX) REVERSE2(RES, VAL, IDX + 2U)
+#define REVERSE8(RES, VAL, IDX)         REVERSE4(RES, VAL, IDX) REVERSE4(RES, VAL, IDX + 4U)
+#define REVERSE(RES, VAL)               REVERSE8(RES, VAL, 0U) REVERSE8(RES, VAL, 8U) REVERSE8(RES, VAL, 16U); REVERSE8(RES, VAL, 24U)
 
 
 auto inline Setup() noexcept -> void;
@@ -177,7 +179,7 @@ auto inline ReverseBitsManualUnroll() noexcept -> void
         currentValue = source[elemIdx];
         reversed = 0;
 
-        REVERSE(reversed, currentValue);
+        REVERSE(reversed, currentValue)
 
         destination[elemIdx] = reversed;
     }
