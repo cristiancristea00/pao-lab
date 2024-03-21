@@ -1,10 +1,10 @@
 #include <iostream>
-#include <chrono>
 #include <random>
 #include <algorithm>
 #include <ranges>
 #include <thread>
 #include <functional>
+#include <format>
 #include <new>
 
 
@@ -58,7 +58,8 @@ private:
     static std::uniform_real_distribution<float> randomDistribution;
     static std::function<float()> generator;
 
-    float features alignas(ALIGN) [DIMENSIONS];
+    float features
+    alignas(ALIGN) [DIMENSIONS];
 };
 
 std::mt19937 Descriptor::randomEngine{SEED};
@@ -73,6 +74,7 @@ static size_t indicesL1 alignas(ALIGN) [NUM_OF_POINTS];
 static size_t indicesL2 alignas(ALIGN) [NUM_OF_POINTS];
 
 auto inline TestSpeed(std::function<void()> const & function, std::string_view const message) noexcept -> void;
+auto inline ComputeChecksum(size_t const * const indices, std::string_view const message) noexcept -> void;
 
 auto inline CompareL1() noexcept -> void;
 auto inline CompareL2() noexcept -> void;
@@ -85,10 +87,14 @@ int main()
     std::cout << "Starting Comparing L1 Norm\n";
     TestSpeed(CompareL1, "CompareL1");
 
+    ComputeChecksum(indicesL1, "L1 Norm");
+
     Cooldown();
 
     std::cout << "Starting Comparing L2 Norm\n";
     TestSpeed(CompareL2, "CompareL2");
+
+    ComputeChecksum(indicesL2, "L2 Norm");
 
     return 0;
 }
@@ -103,6 +109,12 @@ auto inline TestSpeed(std::function<void()> const & function, std::string_view c
     auto const time_ms = difference_ms.count();
 
     std::cout << "Time taken for " << message << " : " << time_ms << " ms\n";
+}
+
+auto inline ComputeChecksum(size_t const * const indices, std::string_view const message) noexcept -> void
+{
+    auto const checksum = std::reduce(indices, indices + NUM_OF_POINTS, 0UL, std::bit_xor<>());
+    std::cout << std::format("Checksum for {} : {:#x}\n", message, checksum);
 }
 
 

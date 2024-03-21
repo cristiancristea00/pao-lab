@@ -4,11 +4,20 @@
 #include <ranges>
 #include <thread>
 #include <functional>
-#include <immintrin.h>
+#include <format>
 #include <new>
+
+#include <immintrin.h>
 
 
 #define ALIGN    std::hardware_destructive_interference_size
+
+#define REDUCE_SUM(RESULT, VECTOR)    __m256 permuted = _mm256_permute2f128_ps(VECTOR, VECTOR, 1); /* Permute the two 128-bit halves of the vector */ \
+                                      __m256 sum0 = _mm256_add_ps(VECTOR, permuted);               /* Add the two opposite halves of the vector */ \
+                                      __m256 sum1 = _mm256_hadd_ps(sum0, sum0);                    /* Add the two adjacent floats in each group of 2 floats */ \
+                                      __m256 sum2 = _mm256_hadd_ps(sum1, sum1);                    /* Add the last two floats in the vector */ \
+                                      RESULT += _mm256_cvtss_f32(sum2);                            /* Convert the result to a float and add it to the sum */
+
 
 enum Constants
 {
@@ -32,15 +41,11 @@ public:
 
         for (size_t idx = 0; idx < DIMENSIONS; idx += FLOAT_VECTOR_SIZE)
         {
-            __m256 left = _mm256_loadu_ps(lhs.features + idx);
-            __m256 right = _mm256_loadu_ps(rhs.features + idx);
-            __m256 diff = _mm256_sub_ps(left, right);
-            __m256 absDiff = _mm256_andnot_ps(_mm256_set1_ps(-0.0F), diff);
-            __m256 permuted = _mm256_permute2f128_ps(absDiff, absDiff, 1);
-            __m256 sum0 = _mm256_add_ps(absDiff, permuted);
-            __m256 sum1 = _mm256_hadd_ps(sum0, sum0);
-            __m256 sum2 = _mm256_hadd_ps(sum1, sum1);
-            sum += _mm256_cvtss_f32(sum2);
+            __m256 left = _mm256_load_ps(lhs.features + idx);               // Load 8 floats from lhs into a vector
+            __m256 right = _mm256_load_ps(rhs.features + idx);              // Load 8 floats from rhs into a vector
+            __m256 diff = _mm256_sub_ps(left, right);                       // Subtract the two vectors
+            __m256 absDiff = _mm256_andnot_ps(_mm256_set1_ps(-0.0F), diff); // Get the absolute value of the difference (trick to clear the sign bit)
+            REDUCE_SUM(sum, absDiff);
         }
 
         return sum;
@@ -52,15 +57,11 @@ public:
 
         for (size_t idx = 0; idx < DIMENSIONS; idx += FLOAT_VECTOR_SIZE)
         {
-            __m256 left = _mm256_loadu_ps(lhs.features + idx);
-            __m256 right = _mm256_loadu_ps(rhs.features + idx);
-            __m256 diff = _mm256_sub_ps(left, right);
-            __m256 squared = _mm256_mul_ps(diff, diff);
-            __m256 permuted = _mm256_permute2f128_ps(squared, squared, 1);
-            __m256 sum0 = _mm256_add_ps(squared, permuted);
-            __m256 sum1 = _mm256_hadd_ps(sum0, sum0);
-            __m256 sum2 = _mm256_hadd_ps(sum1, sum1);
-            sum += _mm256_cvtss_f32(sum2);
+            __m256 left = _mm256_load_ps(lhs.features + idx);  // Load 8 floats from lhs into a vector
+            __m256 right = _mm256_load_ps(rhs.features + idx); // Load 8 floats from rhs into a vector
+            __m256 diff = _mm256_sub_ps(left, right);          // Subtract the two vectors
+            __m256 squared = _mm256_mul_ps(diff, diff);        // Square the difference
+            REDUCE_SUM(sum, squared);
         }
 
         return std::sqrt(sum);
@@ -88,6 +89,7 @@ static size_t indicesL1 alignas(ALIGN) [NUM_OF_POINTS];
 static size_t indicesL2 alignas(ALIGN) [NUM_OF_POINTS];
 
 auto inline TestSpeed(std::function<void()> const & function, std::string_view const message) noexcept -> void;
+auto inline ComputeChecksum(size_t const * const indices, std::string_view const message) noexcept -> void;
 
 auto inline CompareL1() noexcept -> void;
 auto inline CompareL2() noexcept -> void;
@@ -100,10 +102,14 @@ int main()
     std::cout << "Starting Comparing L1 Norm\n";
     TestSpeed(CompareL1, "CompareL1");
 
+    ComputeChecksum(indicesL1, "L1 Norm");
+
     Cooldown();
 
     std::cout << "Starting Comparing L2 Norm\n";
     TestSpeed(CompareL2, "CompareL2");
+
+    ComputeChecksum(indicesL2, "L2 Norm");
 
     return 0;
 }
@@ -118,6 +124,12 @@ auto inline TestSpeed(std::function<void()> const & function, std::string_view c
     auto const time_ms = difference_ms.count();
 
     std::cout << "Time taken for " << message << " : " << time_ms << " ms\n";
+}
+
+auto inline ComputeChecksum(size_t const * const indices, std::string_view const message) noexcept -> void
+{
+    auto const checksum = std::reduce(indices, indices + NUM_OF_POINTS, 0UL, std::bit_xor<>());
+    std::cout << std::format("Checksum for {} : {:#x}\n", message, checksum);
 }
 
 
