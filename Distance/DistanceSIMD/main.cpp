@@ -13,9 +13,9 @@
 #define ALIGN    std::hardware_destructive_interference_size
 
 #define REDUCE_SUM(RESULT, VECTOR)    sum128 = _mm_add_ps(_mm256_castps256_ps128(VECTOR), _mm256_extractf128_ps(VECTOR, 1)); /* Add the lower and upper halves of the vector */ \
-                                      hi64 = _mm_shuffle_ps(sum128, sum128, _MM_SHUFFLE(1, 0, 3, 2));                        /* Swap the 64-bit halves of the vector */ \
+                                      hi64 = _mm_shuffle_ps(sum128, sum128, _MM_SHUFFLE(1U, 0U, 3U, 2U));                        /* Swap the 64-bit halves of the vector */ \
                                       sum64 = _mm_add_ps(hi64, sum128);                                                      /* Add the two 64-bit halves of the vector */ \
-                                      hi32 = _mm_shuffle_ps(sum64, sum64, _MM_SHUFFLE(2, 3, 0, 1));                          /* Swap the 32-bit halves of the vector */ \
+                                      hi32 = _mm_shuffle_ps(sum64, sum64, _MM_SHUFFLE(2U, 3U, 0U, 1U));                          /* Swap the 32-bit halves of the vector */ \
                                       sum32 = _mm_add_ps(sum64, hi32);                                                       /* Add the two 32-bit halves of the vector */ \
                                       RESULT += _mm_cvtss_f32(sum32);                                                        /* Add the two 32-bit floats to the result */ \
 
@@ -174,6 +174,7 @@ auto inline CompareL1() noexcept -> void
     float minDistance{0.0};
     float currentDistance{0.0};
 
+    #pragma omp parallel for
     for (size_t idx1 = 0; idx1 < NUM_OF_POINTS; ++idx1)
     {
         minDistance = std::numeric_limits<float>::max();
@@ -196,6 +197,7 @@ auto inline CompareL2() noexcept -> void
     float minDistance{0.0};
     float currentDistance{0.0};
 
+    #pragma omp parallel for
     for (size_t idx1 = 0; idx1 < NUM_OF_POINTS; ++idx1)
     {
         minDistance = std::numeric_limits<float>::max();
