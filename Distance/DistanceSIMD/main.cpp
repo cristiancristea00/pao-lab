@@ -12,11 +12,12 @@
 
 #define ALIGN    std::hardware_destructive_interference_size
 
-#define REDUCE_SUM(RESULT, VECTOR)    permuted = _mm256_permute2f128_ps(VECTOR, VECTOR, 1); /* Permute the two 128-bit halves of the vector */ \
-                                      sum0 = _mm256_add_ps(VECTOR, permuted);               /* Add the two opposite halves of the vector */ \
-                                      sum1 = _mm256_hadd_ps(sum0, sum0);                    /* Add the two adjacent floats in each group of 2 floats */ \
-                                      sum2 = _mm256_hadd_ps(sum1, sum1);                    /* Add the last two floats in the vector */ \
-                                      RESULT += _mm256_cvtss_f32(sum2);                     /* Convert the result to a float and add it to the sum */
+#define REDUCE_SUM(RESULT, VECTOR)    sum128 = _mm_add_ps(_mm256_castps256_ps128(VECTOR), _mm256_extractf128_ps(VECTOR, 1)); /* Add the lower and upper halves of the vector */ \
+                                      hi64 = _mm_shuffle_ps(sum128, sum128, _MM_SHUFFLE(1, 0, 3, 2));                        /* Swap the 64-bit halves of the vector */ \
+                                      sum64 = _mm_add_ps(hi64, sum128);                                                      /* Add the two 64-bit halves of the vector */ \
+                                      hi32 = _mm_shuffle_ps(sum64, sum64, _MM_SHUFFLE(2, 3, 0, 1));                          /* Swap the 32-bit halves of the vector */ \
+                                      sum32 = _mm_add_ps(sum64, hi32);                                                       /* Add the two 32-bit halves of the vector */ \
+                                      RESULT += _mm_cvtss_f32(sum32);                                                        /* Add the two 32-bit floats to the result */ \
 
 #define L1_NORM(SUM, LHS, RHS, IDX)   left = _mm256_load_ps(LHS.features + IDX);               /* Load 8 floats from lhs into a vector */ \
                                       right = _mm256_load_ps(RHS.features + IDX);              /* Load 8 floats from rhs into a vector */ \
@@ -50,7 +51,8 @@ public:
 
     static float getL1Norm(Descriptor const & lhs, Descriptor const & rhs) noexcept
     {
-        __m256 left, right, diff, absDiff, permuted, sum0, sum1, sum2;
+        __m256 left, right, diff, absDiff;
+        __m128 sum128, hi64, sum64, hi32, sum32;
 
         float sum{0.0};
 
@@ -76,7 +78,8 @@ public:
 
     static float getL2Norm(Descriptor const & lhs, Descriptor const & rhs) noexcept
     {
-        __m256 left, right, diff, squared, permuted, sum0, sum1, sum2;
+        __m256 left, right, diff, squared;
+        __m128 sum128, hi64, sum64, hi32, sum32;
 
         float sum{0.0};
 
