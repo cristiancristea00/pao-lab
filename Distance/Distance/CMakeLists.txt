@@ -11,7 +11,7 @@ set(DEBUG_FLAGS "-Wfatal-errors -Wpedantic -Wall -Wextra -Wconversion -Wshadow=l
                  -Wsuggest-attribute=const -Wsuggest-attribute=noreturn -Wmissing-noreturn -Wsuggest-attribute=malloc -Wsuggest-attribute=format   \
                  -Wmissing-format-attribute -Wsuggest-attribute=cold -Walloc-zero -Walloca -Wattribute-alias=2 -Wduplicated-branches -Wcast-qual")
                   
-set(OPTIMIZED_FLAGS "-Ofast -march=native -pipe -fno-builtin -fopt-info-vec-optimized")
+set(OPTIMIZED_FLAGS "-Ofast -march=native -pipe -fno-builtin -fopt-info-vec-optimized -ftree-vectorizer-verbose=6")
 
 
 set(CMAKE_CXX_FLAGS "${OPTIMIZED_FLAGS} ${DEBUG_FLAGS}")

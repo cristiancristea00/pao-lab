@@ -58,8 +58,7 @@ private:
     static std::uniform_real_distribution<float> randomDistribution;
     static std::function<float()> generator;
 
-    float features
-    alignas(ALIGN) [DIMENSIONS];
+    alignas(ALIGN) float features[DIMENSIONS];
 };
 
 std::mt19937 Descriptor::randomEngine{SEED};
@@ -67,11 +66,11 @@ std::uniform_real_distribution<float> Descriptor::randomDistribution{0.0, 1.0};
 std::function<float()> Descriptor::generator = []() -> float { return randomDistribution(randomEngine); };
 
 
-static Descriptor set1 alignas(ALIGN) [NUM_OF_POINTS];
-static Descriptor set2 alignas(ALIGN) [NUM_OF_POINTS];
+alignas(ALIGN) Descriptor set1[NUM_OF_POINTS];
+alignas(ALIGN) Descriptor set2[NUM_OF_POINTS];
 
-static size_t indicesL1 alignas(ALIGN) [NUM_OF_POINTS];
-static size_t indicesL2 alignas(ALIGN) [NUM_OF_POINTS];
+alignas(ALIGN) size_t indicesL1[NUM_OF_POINTS];
+alignas(ALIGN) size_t indicesL2[NUM_OF_POINTS];
 
 auto inline TestSpeed(std::function<void()> const & function, std::string_view const message) noexcept -> void;
 auto inline ComputeChecksum(size_t const * const indices, std::string_view const message) noexcept -> void;
