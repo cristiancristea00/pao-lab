@@ -28,11 +28,11 @@ Compiler: gcc 13.2.0
 /*
 ## L1 Norm
 
-Execution Time (Compiler Optimized): 2058 ms
+Execution Time (Compiler Optimized): 1366 ms
 
 ## L2 Norm
 
-Execution Time (Compiler Optimized): 2165 ms
+Execution Time (Compiler Optimized): 1143 ms
 */
 
 #include <iostream>
@@ -53,19 +53,19 @@ Execution Time (Compiler Optimized): 2165 ms
                                       sum64 = _mm_add_ps(hi64, sum128);                                                      /* Add the two 64-bit halves of the vector */      \
                                       hi32 = _mm_shuffle_ps(sum64, sum64, _MM_SHUFFLE(2U, 3U, 0U, 1U));                      /* Swap the 32-bit halves of the vector */         \
                                       sum32 = _mm_add_ps(sum64, hi32);                                                       /* Add the two 32-bit halves of the vector */      \
-                                      RESULT += _mm_cvtss_f32(sum32);                                                        /* Add the two 32-bit floats to the result */      \
+                                      RESULT = _mm_cvtss_f32(sum32);                                                         /* Add the two 32-bit floats to the result */      \
 
-#define L1_NORM(SUM, LHS, RHS, IDX)   left = _mm256_load_ps(LHS.features + IDX);               /* Load 8 floats from lhs into a vector */                                   \
+#define L1_NORM(LHS, RHS, IDX)        left = _mm256_load_ps(LHS.features + IDX);               /* Load 8 floats from lhs into a vector */                                   \
                                       right = _mm256_load_ps(RHS.features + IDX);              /* Load 8 floats from rhs into a vector */                                   \
                                       diff = _mm256_sub_ps(left, right);                       /* Subtract the two vectors */                                               \
                                       absDiff = _mm256_andnot_ps(_mm256_set1_ps(-0.0F), diff); /* Get the absolute value of the difference (trick to clear the sign bit) */ \
-                                      REDUCE_SUM(SUM, absDiff); 
+                                      sum = _mm256_add_ps(sum, absDiff);                       /* Add the absolute differences to the sum */
 
-#define L2_NORM(SUM, LHS, RHS, IDX)   left = _mm256_load_ps(LHS.features + IDX);  /* Load 8 floats from lhs into a vector */ \
-                                      right = _mm256_load_ps(RHS.features + IDX); /* Load 8 floats from rhs into a vector */ \
-                                      diff = _mm256_sub_ps(left, right);          /* Subtract the two vectors */             \
-                                      squared = _mm256_mul_ps(diff, diff);        /* Square the difference */                \
-                                      REDUCE_SUM(SUM, squared);
+#define L2_NORM(LHS, RHS, IDX)        left = _mm256_load_ps(LHS.features + IDX);  /* Load 8 floats from lhs into a vector */   \
+                                      right = _mm256_load_ps(RHS.features + IDX); /* Load 8 floats from rhs into a vector */   \
+                                      diff = _mm256_sub_ps(left, right);          /* Subtract the two vectors */               \
+                                      squared = _mm256_mul_ps(diff, diff);        /* Square the difference */                  \
+                                      sum = _mm256_add_ps(sum, squared);          /* Add the squared differences to the sum */
                                     
 
 
@@ -90,26 +90,29 @@ public:
         __m256 left, right, diff, absDiff;
         __m128 sum128, hi64, sum64, hi32, sum32;
 
-        float sum{0.0};
+        __m256 sum = _mm256_setzero_ps();
 
-        L1_NORM(sum, lhs, rhs, 0 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 1 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 2 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 3 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 4 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 5 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 6 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 7 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 8 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 9 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 10 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 11 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 12 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 13 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 14 * FLOAT_VECTOR_SIZE);
-        L1_NORM(sum, lhs, rhs, 15 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 0 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 1 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 2 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 3 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 4 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 5 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 6 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 7 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 8 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 9 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 10 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 11 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 12 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 13 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 14 * FLOAT_VECTOR_SIZE);
+        L1_NORM(lhs, rhs, 15 * FLOAT_VECTOR_SIZE);
 
-        return sum;
+        float result{0.0};
+        REDUCE_SUM(result, sum);
+
+        return result;
     }
 
     static float getL2Norm(Descriptor const & lhs, Descriptor const & rhs) noexcept
@@ -117,26 +120,29 @@ public:
         __m256 left, right, diff, squared;
         __m128 sum128, hi64, sum64, hi32, sum32;
 
-        float sum{0.0};
+        __m256 sum = _mm256_setzero_ps();
 
-        L2_NORM(sum, lhs, rhs, 0 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 1 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 2 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 3 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 4 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 5 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 6 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 7 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 8 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 9 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 10 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 11 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 12 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 13 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 14 * FLOAT_VECTOR_SIZE);
-        L2_NORM(sum, lhs, rhs, 15 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 0 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 1 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 2 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 3 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 4 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 5 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 6 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 7 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 8 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 9 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 10 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 11 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 12 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 13 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 14 * FLOAT_VECTOR_SIZE);
+        L2_NORM(lhs, rhs, 15 * FLOAT_VECTOR_SIZE);
 
-        return std::sqrt(sum);
+        float result{0.0};
+        REDUCE_SUM(result, sum);
+
+        return std::sqrt(result);
     }
 
 private:
