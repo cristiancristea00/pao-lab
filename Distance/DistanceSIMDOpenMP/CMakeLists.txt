@@ -19,7 +19,7 @@ set(CMAKE_C_FLAGS "${OPTIMIZED_FLAGS} ${DEBUG_FLAGS}")
 
 add_executable(DistanceSIMDOpenMP main.cpp)
 
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(DistanceSIMDOpenMP PUBLIC OpenMP::OpenMP_CXX)

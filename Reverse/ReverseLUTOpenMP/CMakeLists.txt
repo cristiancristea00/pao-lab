@@ -21,7 +21,7 @@ set(CMAKE_C_FLAGS_RELEASE "${OPTIMIZED_FLAGS}")
 
 add_executable(ReverseLUTOpenMP main.cpp)
 
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(ReverseLUTOpenMP PUBLIC OpenMP::OpenMP_CXX)
