@@ -9,11 +9,17 @@
 
 #include <CL/opencl.hpp>
 
-#define SEED       ( 0xDEADBEEF42UL )
+#define SEED         ( 0xDEADBEEF42UL )
 
-
-#define SIZE       ( 100'000'000 )
-#define STORAGE    ( SIZE * sizeof(float) )
+#define M            ( 10'000 )
+#define N            ( 10'000 )
+#define K            ( 10'000 )
+#define SIZE_A       ( M * K )
+#define SIZE_B       ( K * N )
+#define SIZE_C       ( M * N )
+#define STORAGE_A    ( SIZE_A * sizeof(float) )
+#define STORAGE_B    ( SIZE_B * sizeof(float) )
+#define STORAGE_C    ( SIZE_C * sizeof(float) )
 
 
 auto GetContext(void) -> cl::Context;
@@ -28,36 +34,36 @@ using namespace std::chrono;
 auto main() -> int
 {
     cl::Context const context = GetContext();
-    cl::Program const program = GetProgram(context, "../add.cl");
+    cl::Program const program = GetProgram(context, "../multiply.cl");
 
     std::mt19937 randomEngine{SEED};
     std::uniform_real_distribution<float> randomDistribution{0.0, 1.0};
     auto generator = [&]() -> float { return randomDistribution(randomEngine); };
 
-    std::vector<float> vec1(SIZE);
-    std::vector<float> vec2(SIZE);
-    std::vector<float> result(SIZE);
+    std::vector<float> mat1(SIZE_A);
+    std::vector<float> mat2(SIZE_B);
+    std::vector<float> result(SIZE_C);
 
-    std::generate(vec1.begin(), vec1.end(), generator);
-    std::generate(vec2.begin(), vec2.end(), generator);
+    std::generate(mat1.begin(), mat1.end(), generator);
+    std::generate(mat2.begin(), mat2.end(), generator);
 
-    cl::Buffer bufferA{context, CL_MEM_READ_WRITE, STORAGE};
-    cl::Buffer bufferB{context, CL_MEM_READ_WRITE, STORAGE};
-    cl::Buffer bufferC{context, CL_MEM_WRITE_ONLY, STORAGE};
+    cl::Buffer bufferA{context, CL_MEM_READ_WRITE, STORAGE_A};
+    cl::Buffer bufferB{context, CL_MEM_READ_WRITE, STORAGE_B};
+    cl::Buffer bufferC{context, CL_MEM_WRITE_ONLY, STORAGE_C};
 
     cl::CommandQueue queue{context};
 
     MeasureTime([&] {
-        cl::copy(queue, vec1.begin(), vec1.end(), bufferA);
-        cl::copy(queue, vec2.begin(), vec2.end(), bufferB);
+        cl::copy(queue, mat1.begin(), mat1.end(), bufferA);
+        cl::copy(queue, mat2.begin(), mat2.end(), bufferB);
     }, "Time taken to load data");
 
-    cl::KernelFunctor<cl::Buffer, cl::Buffer, cl::Buffer> multiplyFunctor{program, "add"};
+    cl::KernelFunctor<cl::Buffer, cl::Buffer, cl::Buffer, unsigned const, unsigned const, unsigned const> multiplyFunctor{program, "multiply"};
 
     MeasureTime([&] {
-        multiplyFunctor(cl::EnqueueArgs{queue, cl::NDRange{SIZE}}, bufferA, bufferB, bufferC);
+        multiplyFunctor(cl::EnqueueArgs{queue, cl::NDRange{M, N}}, bufferA, bufferB, bufferC, M, N, K);
         queue.finish();
-    }, "Time taken for vector addition");
+    }, "Time taken for matrix multiplication");
 
     MeasureTime([&] {
         cl::copy(queue, bufferC, result.begin(), result.end());
