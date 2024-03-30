@@ -2,14 +2,72 @@
 #include <format>
 #include <ranges>
 #include <vector>
+#include <random>
+#include <algorithm>
+#include <chrono>
 #include <fstream>
 
 #include <CL/opencl.hpp>
 
-#define SIZE    ( 10 )
+#define SEED         ( 0xDEADBEEF42UL )
+
+
+#define SIZE       ( 100'000'000 )
+#define STORAGE    ( SIZE * sizeof(float) )
+
+
+auto GetContext(void) -> cl::Context;
+auto GetProgramme(cl::Context const & context, std::string_view const filename) -> cl::Program;
+
+auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void;
+
+
+using namespace std::chrono;
 
 
 auto main() -> int
+{
+    cl::Context const context = GetContext();
+    cl::Program const program = GetProgramme(context, "../add.cl");
+
+    std::mt19937 randomEngine{SEED};
+    std::uniform_real_distribution<float> randomDistribution{0.0, 1.0};
+    auto generator = [&]() -> float { return randomDistribution(randomEngine); };
+
+    std::vector<float> vec1(SIZE);
+    std::vector<float> vec2(SIZE);
+    std::vector<float> result(SIZE);
+
+    std::generate(vec1.begin(), vec1.end(), generator);
+    std::generate(vec2.begin(), vec2.end(), generator);
+
+    cl::Buffer bufferA{context, CL_MEM_READ_WRITE, STORAGE};
+    cl::Buffer bufferB{context, CL_MEM_READ_WRITE, STORAGE};
+    cl::Buffer bufferC{context, CL_MEM_WRITE_ONLY, STORAGE};
+
+    cl::CommandQueue queue{context};
+
+    MeasureTime([&] {
+        cl::copy(queue, vec1.begin(), vec1.end(), bufferA);
+        cl::copy(queue, vec2.begin(), vec2.end(), bufferB);
+    }, "Time taken to load data");
+
+    cl::KernelFunctor<cl::Buffer, cl::Buffer, cl::Buffer> multiplyFunctor{program, "add"};
+
+    MeasureTime([&] {
+        multiplyFunctor(cl::EnqueueArgs{queue, cl::NDRange{SIZE}}, bufferA, bufferB, bufferC);
+        queue.finish();
+    }, "Time taken for vector addition");
+
+    MeasureTime([&] {
+        cl::copy(queue, bufferC, result.begin(), result.end());
+    }, "Time taken to unload data");
+
+    return 0;
+}
+
+
+auto GetContext(void) -> cl::Context
 {
     std::vector<cl::Platform> platforms;
     cl::Platform::get(&platforms);
@@ -46,60 +104,45 @@ auto main() -> int
     }
 
     cl::Device const device = devices.front();
-
     std::cout << std::format("\nUsing device: {}\n", device.getInfo<CL_DEVICE_NAME>());
 
-    cl::Program::Sources sources;
+    return cl::Context{device};
+}
 
-    std::ifstream file{"../add.cl"};
-
-    if (!file.is_open())
-    {
-        std::cerr << "Failed to open OpenCL source file.\n";
-        return EXIT_FAILURE;
-    }
+auto GetProgramme(cl::Context const & context, std::string_view const filename) -> cl::Program
+{
+    std::ifstream file{filename.data()};
 
     using FileIterator = std::istreambuf_iterator<char>;
     std::string source{FileIterator{file}, FileIterator{}};
 
-    sources.emplace_back(source.data(), source.size());
+    cl::Program program{context, source};
 
-    cl::Context context(device);
-    cl::Program program{context, sources};
-    if (program.build(device) != CL_SUCCESS)
+    try
     {
-        std::cerr << "Failed to build program.\n";
-        return EXIT_FAILURE;
+        program.build();
+    }
+    catch(cl::Error const & error)
+    {
+        if (error.err() == CL_BUILD_PROGRAM_FAILURE)
+        {
+            std::cerr << "Build log:\n";
+            std::cerr << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(context.getInfo<CL_CONTEXT_DEVICES>().front());
+        }
+        
+        throw;
     }
 
-    cl::Buffer bufferA{context, CL_MEM_READ_WRITE, SIZE * sizeof(float)};
-    cl::Buffer bufferB{context, CL_MEM_READ_WRITE, SIZE * sizeof(float)};
-    cl::Buffer bufferC{context, CL_MEM_READ_WRITE, SIZE * sizeof(float)};
+    return program;
+}
 
-    float a[SIZE] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    float b[SIZE] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    float c[SIZE] = {0};
 
-    cl::CommandQueue queue{context, device};
-
-    queue.enqueueWriteBuffer(bufferA, CL_TRUE, 0, SIZE * sizeof(float), a);
-    queue.enqueueWriteBuffer(bufferB, CL_TRUE, 0, SIZE * sizeof(float), b);
-
-    cl::Kernel kernel_add{program, "add"};
-    kernel_add.setArg(0, bufferA);
-    kernel_add.setArg(1, bufferB);
-    kernel_add.setArg(2, bufferC);
-
-    queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(SIZE), cl::NullRange);
-    queue.finish();
-
-    queue.enqueueReadBuffer(bufferC, CL_TRUE, 0, SIZE * sizeof(float), c);
-
-    std::cout << "Result:\n";
-    for (auto const & [index, value]: std::views::enumerate(c))
-    {
-        std::cout << std::format("c[{}] = a[{}] + b[{}] = {} + {} = {}\n", index, index, index, a[index], b[index], value);
-    }
-
-    return 0;
+auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void
+{
+    auto const start = high_resolution_clock::now();
+    function();
+    auto const stop = high_resolution_clock::now();
+    auto const difference_ms = duration_cast<milliseconds>(stop - start);
+    auto const time_ms = difference_ms.count();
+    std::cout << std::format("{}: {} ms\n", message, time_ms);
 }
