@@ -1,14 +1,17 @@
+config WDTE = OFF
+config CP = OFF
+config MCLRE = OFF
+
+    
 #include <xc.inc>
-    
-    
-#define RETURN_VAL           ( 0x00 )
-    
+
+
 #define COUNT                ( 0x10 )
 #define DELAY_COUNT          ( 0x11 )
 
 #define BASE_DELAY           ( 4 )
  
-#define PULSE_2_MS           ( 91 )
+#define PULSE_2_MS           ( 100 )
 #define PULSE_0_DOT_5_MS     ( 22 )
 
 #define DELAY_27_DOT_8_MS    ( 217 )
@@ -23,30 +26,25 @@ ORG  0x00
 
     
 main:
-    MOVLW 0x06
-    OPTION
-    CLRF GPIO
     TRIS GPIO
+    MOVLW 0xC6
+    OPTION
 loop:
     MOVLW PULSE_2_MS
     CALL pulse
     
-    MOVLW DELAY_27_DOT_8_MS
     CALL delay
     
-    MOVLW PULSE_0_DOT_5_MS
     CALL pulse
     
     MOVLW DELAY_1_DOT_5_MS
     CALL delay
     
-    MOVLW PULSE_0_DOT_5_MS
     CALL pulse
     
     MOVLW DELAY_3_DOT_5_MS
     CALL delay
     
-    MOVLW PULSE_0_DOT_5_MS
     CALL pulse
     
     MOVLW DELAY_32_DOT_5_MS
@@ -59,14 +57,13 @@ loop:
     
     
 delay:
-    MOVWF COUNT
     CLRF TMR0
+    MOVWF COUNT
 delay_step:
     MOVF TMR0, W
     XORWF COUNT, W
     BTFSC STATUS, STATUS_Z_POSITION
-    RETLW RETURN_VAL
-    
+    RETLW PULSE_0_DOT_5_MS
     GOTO delay_step
     
     
@@ -86,5 +83,5 @@ stall:
     
     DECF COUNT, F
     BTFSC STATUS, STATUS_Z_POSITION
-    RETLW RETURN_VAL
+    RETLW DELAY_27_DOT_8_MS
     GOTO next_pulse
