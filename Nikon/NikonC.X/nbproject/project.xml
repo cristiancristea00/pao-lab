@@ -3,7 +3,7 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>NikonC-Delay</name>
+            <name>NikonC</name>
             <creation-uuid>4ae0e71c-f8de-4062-8db0-d411999e853a</creation-uuid>
             <make-project-type>0</make-project-type>
             <sourceEncoding>UTF-8</sourceEncoding>
