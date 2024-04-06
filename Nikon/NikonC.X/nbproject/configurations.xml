@@ -121,7 +121,7 @@
         <property key="display-class-usage" value="false"/>
         <property key="display-hex-usage" value="false"/>
         <property key="display-overall-usage" value="true"/>
-        <property key="display-psect-usage" value="false"/>
+        <property key="display-psect-usage" value="true"/>
         <property key="extra-lib-directories" value=""/>
         <property key="fill-flash-options-addr" value=""/>
         <property key="fill-flash-options-const" value=""/>
@@ -133,7 +133,7 @@
         <property key="format-hex-file-for-download" value="false"/>
         <property key="initialize-data" value="false"/>
         <property key="input-libraries" value="libm"/>
-        <property key="keep-generated-startup.as" value="false"/>
+        <property key="keep-generated-startup.as" value="true"/>
         <property key="link-in-c-library" value="false"/>
         <property key="link-in-c-library-gcc" value="-nodefaultlibs"/>
         <property key="link-in-peripheral-library" value="false"/>
