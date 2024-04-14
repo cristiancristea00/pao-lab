@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <numeric>
 
 #include <CL/opencl.hpp>
 
@@ -68,6 +69,10 @@ auto main() -> int
     MeasureTime([&] {
         cl::copy(queue, bufferC, result.begin(), result.end());
     }, "Time taken to unload data");
+
+    auto const checksum = std::reduce(result.cbegin(), result.cend(), 0.0F, [] (auto const & lhs, auto const & rhs) -> auto { return (lhs + rhs) / 100.0F; });
+
+    std::cout << std::format("Checksum: {}\n", checksum);
 
     return 0;
 }
