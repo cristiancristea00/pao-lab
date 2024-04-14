@@ -14,10 +14,10 @@ config MCLRE = OFF
 #define PULSE_2_MS           ( 100 )
 #define PULSE_0_DOT_5_MS     ( 22 )
 
-#define DELAY_27_DOT_8_MS    ( 217 )
-#define DELAY_1_DOT_5_MS     ( 12 )
-#define DELAY_3_DOT_5_MS     ( 27 )
-#define DELAY_32_DOT_5_MS    ( 246 )
+#define DELAY_27_DOT_8_MS    ( 39 )
+#define DELAY_1_DOT_5_MS     ( 244 )
+#define DELAY_3_DOT_5_MS     ( 229 )
+#define DELAY_32_DOT_5_MS    ( 10 )
   
     
 PSECT  code, global, class=CODE, abs, ovrld, delta=2, keep
@@ -57,11 +57,9 @@ loop:
     
     
 delay:
-    CLRF TMR0
-    MOVWF COUNT
+    MOVWF TMR0
 delay_step:
     MOVF TMR0, W
-    XORWF COUNT, W
     BTFSC STATUS, STATUS_Z_POSITION
     RETLW PULSE_0_DOT_5_MS
     GOTO delay_step
