@@ -4,10 +4,11 @@ config MCLRE = OFF
 
     
 #include <xc.inc>
+    
+PSECT  vars, class=RAM, space=1
 
-
-#define COUNT                ( 0x10 )
-#define DELAY_COUNT          ( 0x11 )
+COUNT: DS 1
+DELAY_COUNT: DS 1
 
 #define BASE_DELAY           ( 4 )
  
@@ -20,11 +21,11 @@ config MCLRE = OFF
 #define DELAY_32_DOT_5_MS    ( 10 )
   
     
-PSECT  code, global, class=CODE, abs, ovrld, delta=2, keep
+PSECT  code, class=CODE, abs, ovrld, delta=2, space=0, keep
     
 ORG  0x00
 
-    
+
 main:
     TRIS GPIO
     MOVLW 0xC6
