@@ -12,9 +12,9 @@
 
 #define SEED         ( 0xDEADBEEF42UL )
 
-#define M            ( 10'000 )
-#define N            ( 10'000 )
-#define K            ( 10'000 )
+#define M            ( 10'016UL )
+#define N            ( 10'016UL )
+#define K            ( 10'016UL )
 #define SIZE_A       ( M * K )
 #define SIZE_B       ( K * N )
 #define SIZE_C       ( M * N )
@@ -22,8 +22,10 @@
 #define STORAGE_B    ( SIZE_B * sizeof(float) )
 #define STORAGE_C    ( SIZE_C * sizeof(float) )
 
+#define TILE_SIZE    ( 32 )
 
-auto GetContext(void) -> cl::Context;
+
+auto GetContext() -> cl::Context;
 auto GetProgram(cl::Context const & context, std::string_view const filename) -> cl::Program;
 
 auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void;
@@ -60,9 +62,10 @@ auto main() -> int
     }, "Time taken to load data");
 
     cl::KernelFunctor<cl::Buffer, cl::Buffer, cl::Buffer, unsigned const, unsigned const, unsigned const> multiplyFunctor{program, "multiply"};
+    cl::EnqueueArgs const args{queue, cl::NDRange{M, N}, cl::NDRange{TILE_SIZE, TILE_SIZE}};
 
     MeasureTime([&] {
-        multiplyFunctor(cl::EnqueueArgs{queue, cl::NDRange{M, N}}, bufferA, bufferB, bufferC, M, N, K);
+        multiplyFunctor(args, bufferA, bufferB, bufferC, M, N, K);
         queue.finish();
     }, "Time taken for matrix multiplication");
 
@@ -78,7 +81,7 @@ auto main() -> int
 }
 
 
-auto GetContext(void) -> cl::Context
+auto GetContext() -> cl::Context
 {
     std::vector<cl::Platform> platforms;
     cl::Platform::get(&platforms);
