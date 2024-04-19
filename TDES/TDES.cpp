@@ -8,26 +8,26 @@
 
 auto TDES::Encrypt(uint64_t const plaintext, std::string_view const key) noexcept -> uint64_t
 {
-    auto const key1 = key.substr(0, KEY_SIZE_IN_BYTES / 3);
-    auto const key2 = key.substr(KEY_SIZE_IN_BYTES / 3, KEY_SIZE_IN_BYTES / 3);
-    auto const key3 = key.substr(2 * KEY_SIZE_IN_BYTES / 3, KEY_SIZE_IN_BYTES / 3);
+    auto const key1 = key.substr(0, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
+    auto const key2 = key.substr(KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
+    auto const key3 = key.substr(KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
 
-    auto const firstRound = DES::Encrypt(plaintext, key1);
-    auto const secondRound = DES::Decrypt(firstRound, key2);
-    auto const thirdRound = DES::Encrypt(secondRound, key3);
+    auto const firstRound = DES::Encrypt(plaintext, GetKeyFromHex(key1));
+    auto const secondRound = DES::Decrypt(firstRound, GetKeyFromHex(key2));
+    auto const thirdRound = DES::Encrypt(secondRound, GetKeyFromHex(key3));
 
     return thirdRound;
 }
 
 auto TDES::Decrypt(uint64_t const ciphertext, std::string_view const key) noexcept -> uint64_t
 {
-    auto const key1 = key.substr(0, KEY_SIZE_IN_BYTES / 3);
-    auto const key2 = key.substr(KEY_SIZE_IN_BYTES / 3, KEY_SIZE_IN_BYTES / 3);
-    auto const key3 = key.substr(2 * KEY_SIZE_IN_BYTES / 3, KEY_SIZE_IN_BYTES / 3);
+    auto const key1 = key.substr(0, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
+    auto const key2 = key.substr(KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
+    auto const key3 = key.substr(KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
 
-    auto const firstRound = DES::Decrypt(ciphertext, key3);
-    auto const secondRound = DES::Encrypt(firstRound, key2);
-    auto const thirdRound = DES::Decrypt(secondRound, key1);
+    auto const firstRound = DES::Decrypt(ciphertext, GetKeyFromHex(key3));
+    auto const secondRound = DES::Encrypt(firstRound, GetKeyFromHex(key2));
+    auto const thirdRound = DES::Decrypt(secondRound, GetKeyFromHex(key1));
 
     return thirdRound;
 }
@@ -56,6 +56,13 @@ auto TDES::GetRandomKey() noexcept -> std::string
     }
 
     return key;
+}
+
+auto TDES::GetKeyFromHex(std::string_view const key) -> uint64_t
+{
+    static constexpr std::size_t HEX_BASE = 16U;
+
+    return std::stoull(std::string{key}, nullptr, HEX_BASE);
 }
 
 auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_view const outputFileName, std::string_view const key, bool const encrypt) -> void
@@ -116,7 +123,7 @@ auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_
         throw std::runtime_error{std::format("Failed to open output file: {}", outputFileName)};
     }
 
-    for (uint64_t const elem : processed)
+    for (uint64_t const elem: processed)
     {
         outputFile.write(reinterpret_cast<char const *>(&elem), BYTES_IN_64BITS);
     }
@@ -157,9 +164,9 @@ auto TDES::EncryptDecryptSequence(std::vector<uint64_t> const & input, std::stri
 
 void TDES::CheckKey(std::string_view const key)
 {
-    if (key.size() / 2 != KEY_SIZE / BYTE_SIZE)
+    if (key.size() / LENGTH_RATIO != KEY_SIZE / BYTE_SIZE)
     {
-        throw std::invalid_argument{std::format("Invalid key size (expected: {}, actual: {})", KEY_SIZE / BYTE_SIZE, key.size() / 2)};
+        throw std::invalid_argument{std::format("Invalid key size (expected: {}, actual: {})", KEY_SIZE / BYTE_SIZE, key.size() / LENGTH_RATIO)};
     }
 }
 
