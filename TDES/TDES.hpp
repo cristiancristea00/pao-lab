@@ -3,29 +3,38 @@
 #include <string_view>
 #include <vector>
 #include <cstdint>
+#include <memory>
+
+#include "DES.hpp"
 
 class TDES
 {
 public:
-    static auto Encrypt(uint64_t const plaintext, std::string_view const key) noexcept -> uint64_t;
-    static auto Decrypt(uint64_t const ciphertext, std::string_view const key) noexcept -> uint64_t;
-    static auto EncryptFile(std::string_view const inputFileName, std::string_view const outputFileName, std::string_view const key) -> void;
-    static auto DecryptFile(std::string_view const inputFileName, std::string_view const outputFileName, std::string_view const key) -> void;
+    explicit TDES(std::string_view const key) noexcept;
+
+    auto Encrypt(uint64_t const plaintext) const noexcept -> uint64_t;
+    auto Decrypt(uint64_t const ciphertext) const noexcept -> uint64_t;
+    auto EncryptFile(std::string_view const inputFileName, std::string_view const outputFileName) const -> void;
+    auto DecryptFile(std::string_view const inputFileName, std::string_view const outputFileName) const -> void;
     static auto GetRandomKey() noexcept -> std::string;
 private:
-    static auto GetKeyFromHex(std::string_view const key) -> uint64_t;
-    static auto EncryptDecryptFile(std::string_view const inputFileName, std::string_view const outputFileName, std::string_view const key, bool const encrypt) -> void;
-    static auto EncryptSequence(std::vector<uint64_t> const & input, std::string_view const key) noexcept -> std::vector<uint64_t>;
-    static auto DecryptSequence(std::vector<uint64_t> const & input, std::string_view const key) noexcept -> std::vector<uint64_t>;
-    static auto EncryptDecryptSequence(std::vector<uint64_t> const & input, std::string_view const key, bool const encrypt) -> std::vector<uint64_t>;
-    static void CheckKey(std::string_view const key);
-    static auto GetNonce() -> uint64_t;
+    static constexpr std::size_t SEED{0xDEADBEEF42UL};
+    static constexpr std::size_t BYTES_IN_64BITS{8U};
+    static constexpr std::size_t KEY_SIZE{168U};
+    static constexpr std::size_t BYTE_SIZE{8U};
+    static constexpr std::size_t KEY_SIZE_IN_BYTES{KEY_SIZE / BYTE_SIZE};
+    static constexpr std::size_t NUM_KEYS{3U};
+    static constexpr std::size_t LENGTH_RATIO{2U};
 
-    static constexpr std::size_t SEED = 0xDEADBEEF42UL;
-    static constexpr std::size_t BYTES_IN_64BITS = 8U;
-    static constexpr std::size_t KEY_SIZE = 168U;
-    static constexpr std::size_t BYTE_SIZE = 8U;
-    static constexpr std::size_t KEY_SIZE_IN_BYTES = KEY_SIZE / BYTE_SIZE;
-    static constexpr std::size_t NO_OF_KEYS = 3U;
-    static constexpr std::size_t LENGTH_RATIO = 2U;
+    std::string_view const key;
+    std::unique_ptr<DES> const des1;
+    std::unique_ptr<DES> const des2;
+    std::unique_ptr<DES> const des3;
+
+    auto EncryptDecryptFile(std::string_view const inputFileName, std::string_view const outputFileName, bool const encrypt)  const-> void;
+    auto EncryptSequence(std::vector<uint64_t> const & input)const noexcept -> std::vector<uint64_t>;
+    auto DecryptSequence(std::vector<uint64_t> const & input)const noexcept -> std::vector<uint64_t>;
+    auto EncryptDecryptSequence(std::vector<uint64_t> const & input, bool const encrypt) const -> std::vector<uint64_t>;
+    static auto CheckKey(std::string_view const key) -> std::string_view;
+    static auto GetNonce() -> uint64_t;
 };

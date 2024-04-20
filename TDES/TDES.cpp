@@ -5,41 +5,37 @@
 #include <format>
 #include <random>
 
+TDES::TDES(std::string_view const key) noexcept: key(CheckKey(key)),
+                                                 des1(std::make_unique<DES>(key.substr(0, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
+                                                 des2(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
+                                                 des3(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))) { }
 
-auto TDES::Encrypt(uint64_t const plaintext, std::string_view const key) noexcept -> uint64_t
+auto TDES::Encrypt(uint64_t const plaintext) const noexcept -> uint64_t
 {
-    auto const key1 = key.substr(0, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
-    auto const key2 = key.substr(KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
-    auto const key3 = key.substr(KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
-
-    auto const firstRound = DES::Encrypt(plaintext, GetKeyFromHex(key1));
-    auto const secondRound = DES::Decrypt(firstRound, GetKeyFromHex(key2));
-    auto const thirdRound = DES::Encrypt(secondRound, GetKeyFromHex(key3));
+    auto const firstRound = des1->Encrypt(plaintext);
+    auto const secondRound = des2->Decrypt(firstRound);
+    auto const thirdRound = des3->Encrypt(secondRound);
 
     return thirdRound;
 }
 
-auto TDES::Decrypt(uint64_t const ciphertext, std::string_view const key) noexcept -> uint64_t
+auto TDES::Decrypt(uint64_t const ciphertext) const noexcept -> uint64_t
 {
-    auto const key1 = key.substr(0, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
-    auto const key2 = key.substr(KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
-    auto const key3 = key.substr(KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NO_OF_KEYS * LENGTH_RATIO);
-
-    auto const firstRound = DES::Decrypt(ciphertext, GetKeyFromHex(key3));
-    auto const secondRound = DES::Encrypt(firstRound, GetKeyFromHex(key2));
-    auto const thirdRound = DES::Decrypt(secondRound, GetKeyFromHex(key1));
+    auto const firstRound = des3->Decrypt(ciphertext);
+    auto const secondRound = des2->Encrypt(firstRound);
+    auto const thirdRound = des1->Decrypt(secondRound);
 
     return thirdRound;
 }
 
-auto TDES::EncryptFile(std::string_view const inputFileName, std::string_view const outputFileName, std::string_view const key) -> void
+auto TDES::EncryptFile(std::string_view const inputFileName, std::string_view const outputFileName) const -> void
 {
-    EncryptDecryptFile(inputFileName, outputFileName, key, true);
+    EncryptDecryptFile(inputFileName, outputFileName, true);
 }
 
-auto TDES::DecryptFile(std::string_view const inputFileName, std::string_view const outputFileName, std::string_view const key) -> void
+auto TDES::DecryptFile(std::string_view const inputFileName, std::string_view const outputFileName) const -> void
 {
-    EncryptDecryptFile(inputFileName, outputFileName, key, false);
+    EncryptDecryptFile(inputFileName, outputFileName, false);
 }
 
 auto TDES::GetRandomKey() noexcept -> std::string
@@ -58,14 +54,7 @@ auto TDES::GetRandomKey() noexcept -> std::string
     return key;
 }
 
-auto TDES::GetKeyFromHex(std::string_view const key) -> uint64_t
-{
-    static constexpr std::size_t HEX_BASE = 16U;
-
-    return std::stoull(std::string{key}, nullptr, HEX_BASE);
-}
-
-auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_view const outputFileName, std::string_view const key, bool const encrypt) -> void
+auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_view const outputFileName, bool const encrypt) const -> void
 {
     std::ifstream file{inputFileName.data(), std::ios::binary};
 
@@ -113,8 +102,8 @@ auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_
     buffer.clear();
     buffer.shrink_to_fit();
 
-    auto const processFunction = encrypt ? EncryptSequence : DecryptSequence;
-    auto const processed = processFunction(input, key);
+    auto const processFunction = encrypt ? &TDES::EncryptSequence : &TDES::DecryptSequence;
+    auto const processed = (this->*processFunction)(input);
 
     std::ofstream outputFile{outputFileName.data(), std::ios::binary};
 
@@ -131,43 +120,43 @@ auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_
     outputFile.close();
 }
 
-auto TDES::EncryptSequence(std::vector<uint64_t> const & input, std::string_view const key) noexcept -> std::vector<uint64_t>
+auto TDES::EncryptSequence(std::vector<uint64_t> const & input) const noexcept -> std::vector<uint64_t>
 {
-    return EncryptDecryptSequence(input, key, true);
+    return EncryptDecryptSequence(input, true);
 }
 
-auto TDES::DecryptSequence(std::vector<uint64_t> const & input, std::string_view const key) noexcept -> std::vector<uint64_t>
+auto TDES::DecryptSequence(std::vector<uint64_t> const & input) const noexcept -> std::vector<uint64_t>
 {
-    return EncryptDecryptSequence(input, key, false);
+    return EncryptDecryptSequence(input, false);
 }
 
-auto TDES::EncryptDecryptSequence(std::vector<uint64_t> const & input, std::string_view const key, bool const encrypt) -> std::vector<uint64_t>
+auto TDES::EncryptDecryptSequence(std::vector<uint64_t> const & input, bool const encrypt) const -> std::vector<uint64_t>
 {
-    CheckKey(key);
-
     static const std::size_t NONCE = GetNonce();
 
     std::vector<uint64_t> result(input.size(), 0U);
 
-    auto const processFunction = encrypt ? Encrypt : Decrypt;
+    auto const processFunction = encrypt ? &TDES::Encrypt : &TDES::Decrypt;
 
     std::size_t counter = 0U;
 
     for (std::size_t idx = 0; idx < input.size(); ++idx)
     {
-        result[idx] = input[idx] ^ processFunction(NONCE ^ counter, key);
+        result[idx] = input[idx] ^ (this->*processFunction)(NONCE ^ counter);
         ++counter;
     }
 
     return result;
 }
 
-void TDES::CheckKey(std::string_view const key)
+auto TDES::CheckKey(std::string_view const key) -> std::string_view
 {
     if (key.size() / LENGTH_RATIO != KEY_SIZE / BYTE_SIZE)
     {
         throw std::invalid_argument{std::format("Invalid key size (expected: {}, actual: {})", KEY_SIZE / BYTE_SIZE, key.size() / LENGTH_RATIO)};
     }
+
+    return key;
 }
 
 auto TDES::GetNonce() -> uint64_t

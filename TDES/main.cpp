@@ -5,9 +5,9 @@
 
 auto main() -> int
 {
-    auto const key = TDES::GetRandomKey();
-    TDES::EncryptFile("../plain.txt", "../encrypted.txt", key);
-    TDES::DecryptFile("../encrypted.txt", "../decrypted.txt", key);
+    TDES tdes(TDES::GetRandomKey());
+    tdes.EncryptFile("../plain.txt", "../encrypted.txt");
+    tdes.DecryptFile("../encrypted.txt", "../decrypted.txt");
 
     return EXIT_SUCCESS;
 }
