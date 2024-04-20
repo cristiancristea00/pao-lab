@@ -10,7 +10,7 @@
 class TDES
 {
 public:
-    explicit TDES(std::string_view const key) noexcept;
+    explicit TDES(std::string_view const stringKey) noexcept;
 
     auto Encrypt(uint64_t const plaintext) const noexcept -> uint64_t;
     auto Decrypt(uint64_t const ciphertext) const noexcept -> uint64_t;
@@ -26,7 +26,6 @@ private:
     static constexpr std::size_t NUM_KEYS{3U};
     static constexpr std::size_t LENGTH_RATIO{2U};
 
-    std::string_view const key;
     std::unique_ptr<DES> const des1;
     std::unique_ptr<DES> const des2;
     std::unique_ptr<DES> const des3;
@@ -35,6 +34,5 @@ private:
     auto EncryptSequence(std::vector<uint64_t> const & input)const noexcept -> std::vector<uint64_t>;
     auto DecryptSequence(std::vector<uint64_t> const & input)const noexcept -> std::vector<uint64_t>;
     auto EncryptDecryptSequence(std::vector<uint64_t> const & input, bool const encrypt) const -> std::vector<uint64_t>;
-    static auto CheckKey(std::string_view const key) -> std::string_view;
     static auto GetNonce() -> uint64_t;
 };

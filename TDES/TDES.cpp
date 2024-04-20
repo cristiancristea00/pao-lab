@@ -5,10 +5,10 @@
 #include <format>
 #include <random>
 
-TDES::TDES(std::string_view const key) noexcept: key(CheckKey(key)),
-                                                 des1(std::make_unique<DES>(key.substr(0, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
-                                                 des2(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
-                                                 des3(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))) { }
+TDES::TDES(std::string_view const key) noexcept:
+    des1(std::make_unique<DES>(key.substr(0, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
+    des2(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
+    des3(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))) { }
 
 auto TDES::Encrypt(uint64_t const plaintext) const noexcept -> uint64_t
 {
@@ -147,16 +147,6 @@ auto TDES::EncryptDecryptSequence(std::vector<uint64_t> const & input, bool cons
     }
 
     return result;
-}
-
-auto TDES::CheckKey(std::string_view const key) -> std::string_view
-{
-    if (key.size() / LENGTH_RATIO != KEY_SIZE / BYTE_SIZE)
-    {
-        throw std::invalid_argument{std::format("Invalid key size (expected: {}, actual: {})", KEY_SIZE / BYTE_SIZE, key.size() / LENGTH_RATIO)};
-    }
-
-    return key;
 }
 
 auto TDES::GetNonce() -> uint64_t
