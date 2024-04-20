@@ -122,28 +122,24 @@ auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_
 
 auto TDES::EncryptSequence(std::vector<uint64_t> const & input) const noexcept -> std::vector<uint64_t>
 {
-    return EncryptDecryptSequence(input, true);
+    return EncryptDecryptSequence(input);
 }
 
 auto TDES::DecryptSequence(std::vector<uint64_t> const & input) const noexcept -> std::vector<uint64_t>
 {
-    return EncryptDecryptSequence(input, false);
+    return EncryptDecryptSequence(input);
 }
 
-auto TDES::EncryptDecryptSequence(std::vector<uint64_t> const & input, bool const encrypt) const -> std::vector<uint64_t>
+auto TDES::EncryptDecryptSequence(std::vector<uint64_t> const & input) const -> std::vector<uint64_t>
 {
     static const std::size_t NONCE = GetNonce();
 
     std::vector<uint64_t> result(input.size(), 0U);
 
-    auto const processFunction = encrypt ? &TDES::Encrypt : &TDES::Decrypt;
-
-    std::size_t counter = 0U;
-
+    #pragma omp parallel for
     for (std::size_t idx = 0; idx < input.size(); ++idx)
     {
-        result[idx] = input[idx] ^ (this->*processFunction)(NONCE ^ counter);
-        ++counter;
+        result[idx] = input[idx] ^ Encrypt(NONCE ^ idx);
     }
 
     return result;

@@ -74,10 +74,10 @@ auto DES::EncryptDecrypt(uint64_t const input, bool const encrypt) const noexcep
     uint32_t right{0};
     uint64_t output{0};
 
-    auto const initialPermutation = ComputeInitialPermutation(input);
+    auto const chunk = ComputeInitialPermutation(input);
 
-    left = static_cast<uint32_t>(initialPermutation >> HALF_BLOCK_SIZE);
-    right = static_cast<uint32_t>(initialPermutation & MASK);
+    left = static_cast<uint32_t>(chunk >> HALF_BLOCK_SIZE);
+    right = static_cast<uint32_t>(chunk & MASK);
 
     for (std::size_t round = 0; round < NUM_ROUNDS; ++round)
     {
