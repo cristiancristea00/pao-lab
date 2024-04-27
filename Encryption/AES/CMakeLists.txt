@@ -10,7 +10,7 @@ set(DEBUG_FLAGS "-O0 -g -Wfatal-errors -Wpedantic -Wall -Wextra -Wconversion -Ws
                  -Wswitch-default -Wunused-parameter -Wunused-const-variable=2 -Wstrict-overflow=4 -Wstringop-overflow=3 -Wsuggest-attribute=pure  \
                  -Wsuggest-attribute=const -Wsuggest-attribute=noreturn -Wmissing-noreturn -Wsuggest-attribute=malloc -Wsuggest-attribute=format   \
                  -Wmissing-format-attribute -Wsuggest-attribute=cold -Walloc-zero -Walloca -Wattribute-alias=2 -Wduplicated-branches -Wcast-qual   \
-                 -fsanitize=address,leak,undefined")
+                 -fsanitize=address,leak,undefined -march=native")
 
 set(OPTIMIZED_FLAGS "-Ofast -march=native -pipe -fno-builtin -fopt-info-vec-optimized")
 

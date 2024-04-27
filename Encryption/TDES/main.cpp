@@ -37,7 +37,7 @@ Execution Time (Compiler Optimized): 290 ms
 #include "TDES.hpp"
 
 
-auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void;
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void;
 
 
 auto main() -> int
@@ -63,7 +63,7 @@ auto main() -> int
     return EXIT_SUCCESS;
 }
 
-auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void
 {
     auto const start = std::chrono::high_resolution_clock::now();
     function();
