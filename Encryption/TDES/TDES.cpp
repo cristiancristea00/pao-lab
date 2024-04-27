@@ -1,15 +1,15 @@
 #include "TDES.hpp"
-#include "DES.hpp"
 
-#include <fstream>
 #include <format>
+#include <fstream>
 #include <random>
 
+#include "DES.hpp"
 
-TDES::TDES(std::string_view const key) noexcept:
-    des1(std::make_unique<DES>(key.substr(0, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
-    des2(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
-    des3(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))) { }
+
+TDES::TDES(std::string_view const key) noexcept: des1(std::make_unique<DES>(key.substr(0, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
+                                                 des2(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
+                                                 des3(std::make_unique<DES>(key.substr(KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO * 2, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))) { }
 
 auto TDES::Encrypt(std::uint64_t const plaintext) const noexcept -> std::uint64_t
 {
@@ -88,16 +88,16 @@ auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_
         if constexpr (std::endian::native == std::endian::little)
         {
             currentValue = static_cast<std::uint64_t>(buffer[idx + 7]) << 56U | static_cast<std::uint64_t>(buffer[idx + 6]) << 48U |
-                           static_cast<std::uint64_t>(buffer[idx + 5]) << 40U | static_cast<std::uint64_t>(buffer[idx + 4]) << 32U |
-                           static_cast<std::uint64_t>(buffer[idx + 3]) << 24U | static_cast<std::uint64_t>(buffer[idx + 2]) << 16U |
-                           static_cast<std::uint64_t>(buffer[idx + 1]) << 8U | static_cast<std::uint64_t>(buffer[idx + 0]);
+                static_cast<std::uint64_t>(buffer[idx + 5]) << 40U | static_cast<std::uint64_t>(buffer[idx + 4]) << 32U |
+                static_cast<std::uint64_t>(buffer[idx + 3]) << 24U | static_cast<std::uint64_t>(buffer[idx + 2]) << 16U |
+                static_cast<std::uint64_t>(buffer[idx + 1]) << 8U | static_cast<std::uint64_t>(buffer[idx + 0]);
         }
         else
         {
             currentValue = static_cast<std::uint64_t>(buffer[idx + 0]) << 56U | static_cast<std::uint64_t>(buffer[idx + 1]) << 48U |
-                           static_cast<std::uint64_t>(buffer[idx + 2]) << 40U | static_cast<std::uint64_t>(buffer[idx + 3]) << 32U |
-                           static_cast<std::uint64_t>(buffer[idx + 4]) << 24U | static_cast<std::uint64_t>(buffer[idx + 5]) << 16U |
-                           static_cast<std::uint64_t>(buffer[idx + 6]) << 8U | static_cast<std::uint64_t>(buffer[idx + 7]);
+                static_cast<std::uint64_t>(buffer[idx + 2]) << 40U | static_cast<std::uint64_t>(buffer[idx + 3]) << 32U |
+                static_cast<std::uint64_t>(buffer[idx + 4]) << 24U | static_cast<std::uint64_t>(buffer[idx + 5]) << 16U |
+                static_cast<std::uint64_t>(buffer[idx + 6]) << 8U | static_cast<std::uint64_t>(buffer[idx + 7]);
         }
 
         input.push_back(currentValue);

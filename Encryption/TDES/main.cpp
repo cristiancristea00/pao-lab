@@ -30,9 +30,9 @@ File Size: 5.5 MB
 Execution Time (Compiler Optimized): 290 ms
 */
 
-#include <iostream>
-#include <functional>
 #include <chrono>
+#include <functional>
+#include <iostream>
 
 #include "TDES.hpp"
 
@@ -42,17 +42,23 @@ auto MeasureTime(std::function<void(void)> const & function, std::string_view co
 
 auto main() -> int
 {
-    TDES tdes(TDES::GetRandomKey());
+    TDES const tdes(TDES::GetRandomKey());
 
     std::uint8_t lastBytes{0};
 
-    MeasureTime([&] {
-        lastBytes = tdes.EncryptFile("../plain.txt", "../encrypted.txt");
-    }, "Encryption");
+    MeasureTime(
+        [&]
+        {
+            lastBytes = tdes.EncryptFile("../plain.txt", "../encrypted.txt");
+        }, "Encryption"
+    );
 
-    MeasureTime([&] {
-        tdes.DecryptFile("../encrypted.txt", "../decrypted.txt", lastBytes);
-    }, "Decryption");
+    MeasureTime(
+        [&]
+        {
+            tdes.DecryptFile("../encrypted.txt", "../decrypted.txt", lastBytes);
+        }, "Decryption"
+    );
 
     return EXIT_SUCCESS;
 }

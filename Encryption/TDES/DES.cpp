@@ -1,6 +1,7 @@
-#include <format>
-#include <iostream>
 #include "DES.hpp"
+
+#include <format>
+
 
 DES::DES(std::string_view const key) noexcept: roundKeys(GetRoundKeys(key)) { }
 
@@ -32,7 +33,7 @@ auto DES::GetRoundKeys(std::string_view const stringKey) noexcept -> std::array<
     };
 
     static constexpr std::array<std::uint8_t, NUM_ROUNDS> LEFT_SHIFTS{
-           1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1
+        1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1
     };
 
     std::array<std::uint64_t, NUM_ROUNDS> roundKeys{};
@@ -196,150 +197,230 @@ auto DES::ComputeSBoxes(std::uint64_t const input) noexcept -> std::uint32_t
 
     static constexpr std::array<std::array<std::array<std::uint32_t, SBOX_COLS>, SBOX_ROWS>, NUM_SUB_BOXES> SUB_BOXES{
         {
-            {{
-                 {{
-                      14UL << SBOX0, 4UL << SBOX0, 13UL << SBOX0, 1UL << SBOX0, 2UL << SBOX0, 15UL << SBOX0, 11UL << SBOX0, 8UL << SBOX0,
-                      3UL << SBOX0, 10UL << SBOX0, 6UL << SBOX0, 12UL << SBOX0, 5UL << SBOX0, 9UL << SBOX0, 0UL << SBOX0, 7UL << SBOX0
-                  }},
-                 {{
-                      0UL << SBOX0, 15UL << SBOX0, 7UL << SBOX0, 4UL << SBOX0, 14UL << SBOX0, 2UL << SBOX0, 13UL << SBOX0, 1UL << SBOX0,
-                      10UL << SBOX0, 6UL << SBOX0, 12UL << SBOX0, 11UL << SBOX0, 9UL << SBOX0, 5UL << SBOX0, 3UL << SBOX0, 8UL << SBOX0
-                  }},
-                 {{
-                      4UL << SBOX0, 1UL << SBOX0, 14UL << SBOX0, 8UL << SBOX0, 13UL << SBOX0, 6UL << SBOX0, 2UL << SBOX0, 11UL << SBOX0,
-                      15UL << SBOX0, 12UL << SBOX0, 9UL << SBOX0, 7UL << SBOX0, 3UL << SBOX0, 10UL << SBOX0, 5UL << SBOX0, 0UL << SBOX0
-                  }},
-                 {{
-                      15UL << SBOX0, 12UL << SBOX0, 8UL << SBOX0, 2UL << SBOX0, 4UL << SBOX0, 9UL << SBOX0, 1UL << SBOX0, 7UL << SBOX0,
-                      5UL << SBOX0, 11UL << SBOX0, 3UL << SBOX0, 14UL << SBOX0, 10UL << SBOX0, 0UL << SBOX0, 6UL << SBOX0, 13UL << SBOX0
-                  }},
-             }},
-            {{
-                 {{
-                      15UL << SBOX1, 1UL << SBOX1, 8UL << SBOX1, 14UL << SBOX1, 6UL << SBOX1, 11UL << SBOX1, 3UL << SBOX1, 4UL << SBOX1,
-                      9UL << SBOX1, 7UL << SBOX1, 2UL << SBOX1, 13UL << SBOX1, 12UL << SBOX1, 0UL << SBOX1, 5UL << SBOX1, 10UL << SBOX1
-                  }},
-                 {{
-                      3UL << SBOX1, 13UL << SBOX1, 4UL << SBOX1, 7UL << SBOX1, 15UL << SBOX1, 2UL << SBOX1, 8UL << SBOX1, 14UL << SBOX1,
-                      12UL << SBOX1, 0UL << SBOX1, 1UL << SBOX1, 10UL << SBOX1, 6UL << SBOX1, 9UL << SBOX1, 11UL << SBOX1, 5UL << SBOX1
-                  }},
-                 {{
-                      0UL << SBOX1, 14UL << SBOX1, 7UL << SBOX1, 11UL << SBOX1, 10UL << SBOX1, 4UL << SBOX1, 13UL << SBOX1, 1UL << SBOX1,
-                      5UL << SBOX1, 8UL << SBOX1, 12UL << SBOX1, 6UL << SBOX1, 9UL << SBOX1, 3UL << SBOX1, 2UL << SBOX1, 15UL << SBOX1
-                  }},
-                 {{
-                      13UL << SBOX1, 8UL << SBOX1, 10UL << SBOX1, 1UL << SBOX1, 3UL << SBOX1, 15UL << SBOX1, 4UL << SBOX1, 2UL << SBOX1,
-                      11UL << SBOX1, 6UL << SBOX1, 7UL << SBOX1, 12UL << SBOX1, 0UL << SBOX1, 5UL << SBOX1, 14UL << SBOX1, 9UL << SBOX1
-                  }},
-             }},
-            {{
-                 {{
-                      10UL << SBOX2, 0UL << SBOX2, 9UL << SBOX2, 14UL << SBOX2, 6UL << SBOX2, 3UL << SBOX2, 15UL << SBOX2, 5UL << SBOX2,
-                      1UL << SBOX2, 13UL << SBOX2, 12UL << SBOX2, 7UL << SBOX2, 11UL << SBOX2, 4UL << SBOX2, 2UL << SBOX2, 8UL << SBOX2
-                  }},
-                 {{
-                      13UL << SBOX2, 7UL << SBOX2, 0UL << SBOX2, 9UL << SBOX2, 3UL << SBOX2, 4UL << SBOX2, 6UL << SBOX2, 10UL << SBOX2,
-                      2UL << SBOX2, 8UL << SBOX2, 5UL << SBOX2, 14UL << SBOX2, 12UL << SBOX2, 11UL << SBOX2, 15UL << SBOX2, 1UL << SBOX2
-                  }},
-                 {{
-                      13UL << SBOX2, 6UL << SBOX2, 4UL << SBOX2, 9UL << SBOX2, 8UL << SBOX2, 15UL << SBOX2, 3UL << SBOX2, 0UL << SBOX2,
-                      11UL << SBOX2, 1UL << SBOX2, 2UL << SBOX2, 12UL << SBOX2, 5UL << SBOX2, 10UL << SBOX2, 14UL << SBOX2, 7UL << SBOX2
-                  }},
-                 {{
-                      1UL << SBOX2, 10UL << SBOX2, 13UL << SBOX2, 0UL << SBOX2, 6UL << SBOX2, 9UL << SBOX2, 8UL << SBOX2, 7UL << SBOX2,
-                      4UL << SBOX2, 15UL << SBOX2, 14UL << SBOX2, 3UL << SBOX2, 11UL << SBOX2, 5UL << SBOX2, 2UL << SBOX2, 12UL << SBOX2
-                  }},
-             }},
-            {{
-                 {{
-                      7UL << SBOX3, 13UL << SBOX3, 14UL << SBOX3, 3UL << SBOX3, 0UL << SBOX3, 6UL << SBOX3, 9UL << SBOX3, 10UL << SBOX3,
-                      1UL << SBOX3, 2UL << SBOX3, 8UL << SBOX3, 5UL << SBOX3, 11UL << SBOX3, 12UL << SBOX3, 4UL << SBOX3, 15UL << SBOX3
-                  }},
-                 {{
-                      13UL << SBOX3, 8UL << SBOX3, 11UL << SBOX3, 5UL << SBOX3, 6UL << SBOX3, 15UL << SBOX3, 0UL << SBOX3, 3UL << SBOX3,
-                      4UL << SBOX3, 7UL << SBOX3, 2UL << SBOX3, 12UL << SBOX3, 1UL << SBOX3, 10UL << SBOX3, 14UL << SBOX3, 9UL << SBOX3
-                  }},
-                 {{
-                      10UL << SBOX3, 6UL << SBOX3, 9UL << SBOX3, 0UL << SBOX3, 12UL << SBOX3, 11UL << SBOX3, 7UL << SBOX3, 13UL << SBOX3,
-                      15UL << SBOX3, 1UL << SBOX3, 3UL << SBOX3, 14UL << SBOX3, 5UL << SBOX3, 2UL << SBOX3, 8UL << SBOX3, 4UL << SBOX3
-                  }},
-                 {{
-                      3UL << SBOX3, 15UL << SBOX3, 0UL << SBOX3, 6UL << SBOX3, 10UL << SBOX3, 1UL << SBOX3, 13UL << SBOX3, 8UL << SBOX3,
-                      9UL << SBOX3, 4UL << SBOX3, 5UL << SBOX3, 11UL << SBOX3, 12UL << SBOX3, 7UL << SBOX3, 2UL << SBOX3, 14UL << SBOX3
-                  }},
-             }},
-            {{
-                 {{
-                      2UL << SBOX4, 12UL << SBOX4, 4UL << SBOX4, 1UL << SBOX4, 7UL << SBOX4, 10UL << SBOX4, 11UL << SBOX4, 6UL << SBOX4,
-                      8UL << SBOX4, 5UL << SBOX4, 3UL << SBOX4, 15UL << SBOX4, 13UL << SBOX4, 0UL << SBOX4, 14UL << SBOX4, 9UL << SBOX4
-                  }},
-                 {{
-                      14UL << SBOX4, 11UL << SBOX4, 2UL << SBOX4, 12UL << SBOX4, 4UL << SBOX4, 7UL << SBOX4, 13UL << SBOX4, 1UL << SBOX4,
-                      5UL << SBOX4, 0UL << SBOX4, 15UL << SBOX4, 10UL << SBOX4, 3UL << SBOX4, 9UL << SBOX4, 8UL << SBOX4, 6UL << SBOX4
-                  }},
-                 {{
-                      4UL << SBOX4, 2UL << SBOX4, 1UL << SBOX4, 11UL << SBOX4, 10UL << SBOX4, 13UL << SBOX4, 7UL << SBOX4, 8UL << SBOX4,
-                      15UL << SBOX4, 9UL << SBOX4, 12UL << SBOX4, 5UL << SBOX4, 6UL << SBOX4, 3UL << SBOX4, 0UL << SBOX4, 14UL << SBOX4
-                  }},
-                 {{
-                      11UL << SBOX4, 8UL << SBOX4, 12UL << SBOX4, 7UL << SBOX4, 1UL << SBOX4, 14UL << SBOX4, 2UL << SBOX4, 13UL << SBOX4,
-                      6UL << SBOX4, 15UL << SBOX4, 0UL << SBOX4, 9UL << SBOX4, 10UL << SBOX4, 4UL << SBOX4, 5UL << SBOX4, 3UL << SBOX4
-                  }},
-             }},
-            {{
-                 {{
-                      12UL << SBOX5, 1UL << SBOX5, 10UL << SBOX5, 15UL << SBOX5, 9UL << SBOX5, 2UL << SBOX5, 6UL << SBOX5, 8UL << SBOX5,
-                      0UL << SBOX5, 13UL << SBOX5, 3UL << SBOX5, 4UL << SBOX5, 14UL << SBOX5, 7UL << SBOX5, 5UL << SBOX5, 11UL << SBOX5
-                  }},
-                 {{
-                      10UL << SBOX5, 15UL << SBOX5, 4UL << SBOX5, 2UL << SBOX5, 7UL << SBOX5, 12UL << SBOX5, 9UL << SBOX5, 5UL << SBOX5,
-                      6UL << SBOX5, 1UL << SBOX5, 13UL << SBOX5, 14UL << SBOX5, 0UL << SBOX5, 11UL << SBOX5, 3UL << SBOX5, 8UL << SBOX5
-                  }},
-                 {{
-                      9UL << SBOX5, 14UL << SBOX5, 15UL << SBOX5, 5UL << SBOX5, 2UL << SBOX5, 8UL << SBOX5, 12UL << SBOX5, 3UL << SBOX5,
-                      7UL << SBOX5, 0UL << SBOX5, 4UL << SBOX5, 10UL << SBOX5, 1UL << SBOX5, 13UL << SBOX5, 11UL << SBOX5, 6UL << SBOX5
-                  }},
-                 {{
-                      4UL << SBOX5, 3UL << SBOX5, 2UL << SBOX5, 12UL << SBOX5, 9UL << SBOX5, 5UL << SBOX5, 15UL << SBOX5, 10UL << SBOX5,
-                      11UL << SBOX5, 14UL << SBOX5, 1UL << SBOX5, 7UL << SBOX5, 6UL << SBOX5, 0UL << SBOX5, 8UL << SBOX5, 13UL << SBOX5
-                  }},
-             }},
-            {{
-                 {{
-                      4UL << SBOX6, 11UL << SBOX6, 2UL << SBOX6, 14UL << SBOX6, 15UL << SBOX6, 0UL << SBOX6, 8UL << SBOX6, 13UL << SBOX6,
-                      3UL << SBOX6, 12UL << SBOX6, 9UL << SBOX6, 7UL << SBOX6, 5UL << SBOX6, 10UL << SBOX6, 6UL << SBOX6, 1UL << SBOX6
-                  }},
-                 {{
-                      13UL << SBOX6, 0UL << SBOX6, 11UL << SBOX6, 7UL << SBOX6, 4UL << SBOX6, 9UL << SBOX6, 1UL << SBOX6, 10UL << SBOX6,
-                      14UL << SBOX6, 3UL << SBOX6, 5UL << SBOX6, 12UL << SBOX6, 2UL << SBOX6, 15UL << SBOX6, 8UL << SBOX6, 6UL << SBOX6
-                  }},
-                 {{
-                      1UL << SBOX6, 4UL << SBOX6, 11UL << SBOX6, 13UL << SBOX6, 12UL << SBOX6, 3UL << SBOX6, 7UL << SBOX6, 14UL << SBOX6,
-                      10UL << SBOX6, 15UL << SBOX6, 6UL << SBOX6, 8UL << SBOX6, 0UL << SBOX6, 5UL << SBOX6, 9UL << SBOX6, 2UL << SBOX6
-                  }},
-                 {{
-                      6UL << SBOX6, 11UL << SBOX6, 13UL << SBOX6, 8UL << SBOX6, 1UL << SBOX6, 4UL << SBOX6, 10UL << SBOX6, 7UL << SBOX6,
-                      9UL << SBOX6, 5UL << SBOX6, 0UL << SBOX6, 15UL << SBOX6, 14UL << SBOX6, 2UL << SBOX6, 3UL << SBOX6, 12UL << SBOX6
-                  }},
-             }},
-            {{
-                 {{
-                      13UL << SBOX7, 2UL << SBOX7, 8UL << SBOX7, 4UL << SBOX7, 6UL << SBOX7, 15UL << SBOX7, 11UL << SBOX7, 1UL << SBOX7,
-                      10UL << SBOX7, 9UL << SBOX7, 3UL << SBOX7, 14UL << SBOX7, 5UL << SBOX7, 0UL << SBOX7, 12UL << SBOX7, 7UL << SBOX7
-                  }},
-                 {{
-                      1UL << SBOX7, 15UL << SBOX7, 13UL << SBOX7, 8UL << SBOX7, 10UL << SBOX7, 3UL << SBOX7, 7UL << SBOX7, 4UL << SBOX7,
-                      12UL << SBOX7, 5UL << SBOX7, 6UL << SBOX7, 11UL << SBOX7, 0UL << SBOX7, 14UL << SBOX7, 9UL << SBOX7, 2UL << SBOX7
-                  }},
-                 {{
-                      7UL << SBOX7, 11UL << SBOX7, 4UL << SBOX7, 1UL << SBOX7, 9UL << SBOX7, 12UL << SBOX7, 14UL << SBOX7, 2UL << SBOX7,
-                      0UL << SBOX7, 6UL << SBOX7, 10UL << SBOX7, 13UL << SBOX7, 15UL << SBOX7, 3UL << SBOX7, 5UL << SBOX7, 8UL << SBOX7
-                  }},
-                 {{
-                      2UL << SBOX7, 1UL << SBOX7, 14UL << SBOX7, 7UL << SBOX7, 4UL << SBOX7, 10UL << SBOX7, 8UL << SBOX7, 13UL << SBOX7,
-                      15UL << SBOX7, 12UL << SBOX7, 9UL << SBOX7, 0UL << SBOX7, 3UL << SBOX7, 5UL << SBOX7, 6UL << SBOX7, 11UL << SBOX7
-                  }},
-             }},
+            {
+                {
+                    {
+                        {
+                            14UL << SBOX0, 4UL << SBOX0, 13UL << SBOX0, 1UL << SBOX0, 2UL << SBOX0, 15UL << SBOX0, 11UL << SBOX0, 8UL << SBOX0,
+                            3UL << SBOX0, 10UL << SBOX0, 6UL << SBOX0, 12UL << SBOX0, 5UL << SBOX0, 9UL << SBOX0, 0UL << SBOX0, 7UL << SBOX0
+                        }
+                    },
+                    {
+                        {
+                            0UL << SBOX0, 15UL << SBOX0, 7UL << SBOX0, 4UL << SBOX0, 14UL << SBOX0, 2UL << SBOX0, 13UL << SBOX0, 1UL << SBOX0,
+                            10UL << SBOX0, 6UL << SBOX0, 12UL << SBOX0, 11UL << SBOX0, 9UL << SBOX0, 5UL << SBOX0, 3UL << SBOX0, 8UL << SBOX0
+                        }
+                    },
+                    {
+                        {
+                            4UL << SBOX0, 1UL << SBOX0, 14UL << SBOX0, 8UL << SBOX0, 13UL << SBOX0, 6UL << SBOX0, 2UL << SBOX0, 11UL << SBOX0,
+                            15UL << SBOX0, 12UL << SBOX0, 9UL << SBOX0, 7UL << SBOX0, 3UL << SBOX0, 10UL << SBOX0, 5UL << SBOX0, 0UL << SBOX0
+                        }
+                    },
+                    {
+                        {
+                            15UL << SBOX0, 12UL << SBOX0, 8UL << SBOX0, 2UL << SBOX0, 4UL << SBOX0, 9UL << SBOX0, 1UL << SBOX0, 7UL << SBOX0,
+                            5UL << SBOX0, 11UL << SBOX0, 3UL << SBOX0, 14UL << SBOX0, 10UL << SBOX0, 0UL << SBOX0, 6UL << SBOX0, 13UL << SBOX0
+                        }
+                    },
+                }
+            },
+            {
+                {
+                    {
+                        {
+                            15UL << SBOX1, 1UL << SBOX1, 8UL << SBOX1, 14UL << SBOX1, 6UL << SBOX1, 11UL << SBOX1, 3UL << SBOX1, 4UL << SBOX1,
+                            9UL << SBOX1, 7UL << SBOX1, 2UL << SBOX1, 13UL << SBOX1, 12UL << SBOX1, 0UL << SBOX1, 5UL << SBOX1, 10UL << SBOX1
+                        }
+                    },
+                    {
+                        {
+                            3UL << SBOX1, 13UL << SBOX1, 4UL << SBOX1, 7UL << SBOX1, 15UL << SBOX1, 2UL << SBOX1, 8UL << SBOX1, 14UL << SBOX1,
+                            12UL << SBOX1, 0UL << SBOX1, 1UL << SBOX1, 10UL << SBOX1, 6UL << SBOX1, 9UL << SBOX1, 11UL << SBOX1, 5UL << SBOX1
+                        }
+                    },
+                    {
+                        {
+                            0UL << SBOX1, 14UL << SBOX1, 7UL << SBOX1, 11UL << SBOX1, 10UL << SBOX1, 4UL << SBOX1, 13UL << SBOX1, 1UL << SBOX1,
+                            5UL << SBOX1, 8UL << SBOX1, 12UL << SBOX1, 6UL << SBOX1, 9UL << SBOX1, 3UL << SBOX1, 2UL << SBOX1, 15UL << SBOX1
+                        }
+                    },
+                    {
+                        {
+                            13UL << SBOX1, 8UL << SBOX1, 10UL << SBOX1, 1UL << SBOX1, 3UL << SBOX1, 15UL << SBOX1, 4UL << SBOX1, 2UL << SBOX1,
+                            11UL << SBOX1, 6UL << SBOX1, 7UL << SBOX1, 12UL << SBOX1, 0UL << SBOX1, 5UL << SBOX1, 14UL << SBOX1, 9UL << SBOX1
+                        }
+                    },
+                }
+            },
+            {
+                {
+                    {
+                        {
+                            10UL << SBOX2, 0UL << SBOX2, 9UL << SBOX2, 14UL << SBOX2, 6UL << SBOX2, 3UL << SBOX2, 15UL << SBOX2, 5UL << SBOX2,
+                            1UL << SBOX2, 13UL << SBOX2, 12UL << SBOX2, 7UL << SBOX2, 11UL << SBOX2, 4UL << SBOX2, 2UL << SBOX2, 8UL << SBOX2
+                        }
+                    },
+                    {
+                        {
+                            13UL << SBOX2, 7UL << SBOX2, 0UL << SBOX2, 9UL << SBOX2, 3UL << SBOX2, 4UL << SBOX2, 6UL << SBOX2, 10UL << SBOX2,
+                            2UL << SBOX2, 8UL << SBOX2, 5UL << SBOX2, 14UL << SBOX2, 12UL << SBOX2, 11UL << SBOX2, 15UL << SBOX2, 1UL << SBOX2
+                        }
+                    },
+                    {
+                        {
+                            13UL << SBOX2, 6UL << SBOX2, 4UL << SBOX2, 9UL << SBOX2, 8UL << SBOX2, 15UL << SBOX2, 3UL << SBOX2, 0UL << SBOX2,
+                            11UL << SBOX2, 1UL << SBOX2, 2UL << SBOX2, 12UL << SBOX2, 5UL << SBOX2, 10UL << SBOX2, 14UL << SBOX2, 7UL << SBOX2
+                        }
+                    },
+                    {
+                        {
+                            1UL << SBOX2, 10UL << SBOX2, 13UL << SBOX2, 0UL << SBOX2, 6UL << SBOX2, 9UL << SBOX2, 8UL << SBOX2, 7UL << SBOX2,
+                            4UL << SBOX2, 15UL << SBOX2, 14UL << SBOX2, 3UL << SBOX2, 11UL << SBOX2, 5UL << SBOX2, 2UL << SBOX2, 12UL << SBOX2
+                        }
+                    },
+                }
+            },
+            {
+                {
+                    {
+                        {
+                            7UL << SBOX3, 13UL << SBOX3, 14UL << SBOX3, 3UL << SBOX3, 0UL << SBOX3, 6UL << SBOX3, 9UL << SBOX3, 10UL << SBOX3,
+                            1UL << SBOX3, 2UL << SBOX3, 8UL << SBOX3, 5UL << SBOX3, 11UL << SBOX3, 12UL << SBOX3, 4UL << SBOX3, 15UL << SBOX3
+                        }
+                    },
+                    {
+                        {
+                            13UL << SBOX3, 8UL << SBOX3, 11UL << SBOX3, 5UL << SBOX3, 6UL << SBOX3, 15UL << SBOX3, 0UL << SBOX3, 3UL << SBOX3,
+                            4UL << SBOX3, 7UL << SBOX3, 2UL << SBOX3, 12UL << SBOX3, 1UL << SBOX3, 10UL << SBOX3, 14UL << SBOX3, 9UL << SBOX3
+                        }
+                    },
+                    {
+                        {
+                            10UL << SBOX3, 6UL << SBOX3, 9UL << SBOX3, 0UL << SBOX3, 12UL << SBOX3, 11UL << SBOX3, 7UL << SBOX3, 13UL << SBOX3,
+                            15UL << SBOX3, 1UL << SBOX3, 3UL << SBOX3, 14UL << SBOX3, 5UL << SBOX3, 2UL << SBOX3, 8UL << SBOX3, 4UL << SBOX3
+                        }
+                    },
+                    {
+                        {
+                            3UL << SBOX3, 15UL << SBOX3, 0UL << SBOX3, 6UL << SBOX3, 10UL << SBOX3, 1UL << SBOX3, 13UL << SBOX3, 8UL << SBOX3,
+                            9UL << SBOX3, 4UL << SBOX3, 5UL << SBOX3, 11UL << SBOX3, 12UL << SBOX3, 7UL << SBOX3, 2UL << SBOX3, 14UL << SBOX3
+                        }
+                    },
+                }
+            },
+            {
+                {
+                    {
+                        {
+                            2UL << SBOX4, 12UL << SBOX4, 4UL << SBOX4, 1UL << SBOX4, 7UL << SBOX4, 10UL << SBOX4, 11UL << SBOX4, 6UL << SBOX4,
+                            8UL << SBOX4, 5UL << SBOX4, 3UL << SBOX4, 15UL << SBOX4, 13UL << SBOX4, 0UL << SBOX4, 14UL << SBOX4, 9UL << SBOX4
+                        }
+                    },
+                    {
+                        {
+                            14UL << SBOX4, 11UL << SBOX4, 2UL << SBOX4, 12UL << SBOX4, 4UL << SBOX4, 7UL << SBOX4, 13UL << SBOX4, 1UL << SBOX4,
+                            5UL << SBOX4, 0UL << SBOX4, 15UL << SBOX4, 10UL << SBOX4, 3UL << SBOX4, 9UL << SBOX4, 8UL << SBOX4, 6UL << SBOX4
+                        }
+                    },
+                    {
+                        {
+                            4UL << SBOX4, 2UL << SBOX4, 1UL << SBOX4, 11UL << SBOX4, 10UL << SBOX4, 13UL << SBOX4, 7UL << SBOX4, 8UL << SBOX4,
+                            15UL << SBOX4, 9UL << SBOX4, 12UL << SBOX4, 5UL << SBOX4, 6UL << SBOX4, 3UL << SBOX4, 0UL << SBOX4, 14UL << SBOX4
+                        }
+                    },
+                    {
+                        {
+                            11UL << SBOX4, 8UL << SBOX4, 12UL << SBOX4, 7UL << SBOX4, 1UL << SBOX4, 14UL << SBOX4, 2UL << SBOX4, 13UL << SBOX4,
+                            6UL << SBOX4, 15UL << SBOX4, 0UL << SBOX4, 9UL << SBOX4, 10UL << SBOX4, 4UL << SBOX4, 5UL << SBOX4, 3UL << SBOX4
+                        }
+                    },
+                }
+            },
+            {
+                {
+                    {
+                        {
+                            12UL << SBOX5, 1UL << SBOX5, 10UL << SBOX5, 15UL << SBOX5, 9UL << SBOX5, 2UL << SBOX5, 6UL << SBOX5, 8UL << SBOX5,
+                            0UL << SBOX5, 13UL << SBOX5, 3UL << SBOX5, 4UL << SBOX5, 14UL << SBOX5, 7UL << SBOX5, 5UL << SBOX5, 11UL << SBOX5
+                        }
+                    },
+                    {
+                        {
+                            10UL << SBOX5, 15UL << SBOX5, 4UL << SBOX5, 2UL << SBOX5, 7UL << SBOX5, 12UL << SBOX5, 9UL << SBOX5, 5UL << SBOX5,
+                            6UL << SBOX5, 1UL << SBOX5, 13UL << SBOX5, 14UL << SBOX5, 0UL << SBOX5, 11UL << SBOX5, 3UL << SBOX5, 8UL << SBOX5
+                        }
+                    },
+                    {
+                        {
+                            9UL << SBOX5, 14UL << SBOX5, 15UL << SBOX5, 5UL << SBOX5, 2UL << SBOX5, 8UL << SBOX5, 12UL << SBOX5, 3UL << SBOX5,
+                            7UL << SBOX5, 0UL << SBOX5, 4UL << SBOX5, 10UL << SBOX5, 1UL << SBOX5, 13UL << SBOX5, 11UL << SBOX5, 6UL << SBOX5
+                        }
+                    },
+                    {
+                        {
+                            4UL << SBOX5, 3UL << SBOX5, 2UL << SBOX5, 12UL << SBOX5, 9UL << SBOX5, 5UL << SBOX5, 15UL << SBOX5, 10UL << SBOX5,
+                            11UL << SBOX5, 14UL << SBOX5, 1UL << SBOX5, 7UL << SBOX5, 6UL << SBOX5, 0UL << SBOX5, 8UL << SBOX5, 13UL << SBOX5
+                        }
+                    },
+                }
+            },
+            {
+                {
+                    {
+                        {
+                            4UL << SBOX6, 11UL << SBOX6, 2UL << SBOX6, 14UL << SBOX6, 15UL << SBOX6, 0UL << SBOX6, 8UL << SBOX6, 13UL << SBOX6,
+                            3UL << SBOX6, 12UL << SBOX6, 9UL << SBOX6, 7UL << SBOX6, 5UL << SBOX6, 10UL << SBOX6, 6UL << SBOX6, 1UL << SBOX6
+                        }
+                    },
+                    {
+                        {
+                            13UL << SBOX6, 0UL << SBOX6, 11UL << SBOX6, 7UL << SBOX6, 4UL << SBOX6, 9UL << SBOX6, 1UL << SBOX6, 10UL << SBOX6,
+                            14UL << SBOX6, 3UL << SBOX6, 5UL << SBOX6, 12UL << SBOX6, 2UL << SBOX6, 15UL << SBOX6, 8UL << SBOX6, 6UL << SBOX6
+                        }
+                    },
+                    {
+                        {
+                            1UL << SBOX6, 4UL << SBOX6, 11UL << SBOX6, 13UL << SBOX6, 12UL << SBOX6, 3UL << SBOX6, 7UL << SBOX6, 14UL << SBOX6,
+                            10UL << SBOX6, 15UL << SBOX6, 6UL << SBOX6, 8UL << SBOX6, 0UL << SBOX6, 5UL << SBOX6, 9UL << SBOX6, 2UL << SBOX6
+                        }
+                    },
+                    {
+                        {
+                            6UL << SBOX6, 11UL << SBOX6, 13UL << SBOX6, 8UL << SBOX6, 1UL << SBOX6, 4UL << SBOX6, 10UL << SBOX6, 7UL << SBOX6,
+                            9UL << SBOX6, 5UL << SBOX6, 0UL << SBOX6, 15UL << SBOX6, 14UL << SBOX6, 2UL << SBOX6, 3UL << SBOX6, 12UL << SBOX6
+                        }
+                    },
+                }
+            },
+            {
+                {
+                    {
+                        {
+                            13UL << SBOX7, 2UL << SBOX7, 8UL << SBOX7, 4UL << SBOX7, 6UL << SBOX7, 15UL << SBOX7, 11UL << SBOX7, 1UL << SBOX7,
+                            10UL << SBOX7, 9UL << SBOX7, 3UL << SBOX7, 14UL << SBOX7, 5UL << SBOX7, 0UL << SBOX7, 12UL << SBOX7, 7UL << SBOX7
+                        }
+                    },
+                    {
+                        {
+                            1UL << SBOX7, 15UL << SBOX7, 13UL << SBOX7, 8UL << SBOX7, 10UL << SBOX7, 3UL << SBOX7, 7UL << SBOX7, 4UL << SBOX7,
+                            12UL << SBOX7, 5UL << SBOX7, 6UL << SBOX7, 11UL << SBOX7, 0UL << SBOX7, 14UL << SBOX7, 9UL << SBOX7, 2UL << SBOX7
+                        }
+                    },
+                    {
+                        {
+                            7UL << SBOX7, 11UL << SBOX7, 4UL << SBOX7, 1UL << SBOX7, 9UL << SBOX7, 12UL << SBOX7, 14UL << SBOX7, 2UL << SBOX7,
+                            0UL << SBOX7, 6UL << SBOX7, 10UL << SBOX7, 13UL << SBOX7, 15UL << SBOX7, 3UL << SBOX7, 5UL << SBOX7, 8UL << SBOX7
+                        }
+                    },
+                    {
+                        {
+                            2UL << SBOX7, 1UL << SBOX7, 14UL << SBOX7, 7UL << SBOX7, 4UL << SBOX7, 10UL << SBOX7, 8UL << SBOX7, 13UL << SBOX7,
+                            15UL << SBOX7, 12UL << SBOX7, 9UL << SBOX7, 0UL << SBOX7, 3UL << SBOX7, 5UL << SBOX7, 6UL << SBOX7, 11UL << SBOX7
+                        }
+                    },
+                }
+            },
         }
     };
 
