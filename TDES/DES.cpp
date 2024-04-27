@@ -37,12 +37,12 @@ auto DES::GetRoundKeys(std::string_view const stringKey) noexcept -> std::array<
 
     std::array<std::uint64_t, NUM_ROUNDS> roundKeys{};
 
-    uint64_t const key = std::stoull(std::string{stringKey}, nullptr, 16);
-    uint64_t const permuted = ComputePermutation(key, PERMUTED_CHOICE1.data(), KEY_SIZE);
-    uint64_t left = (permuted >> SHIFT) & MASK;
-    uint64_t right = permuted & MASK;
+    std::uint64_t const key = std::stoull(std::string{stringKey}, nullptr, 16);
+    std::uint64_t const permuted = ComputePermutation(key, PERMUTED_CHOICE1.data(), KEY_SIZE);
+    std::uint64_t left = (permuted >> SHIFT) & MASK;
+    std::uint64_t right = permuted & MASK;
 
-    uint64_t combined{0};
+    std::uint64_t combined{0};
 
     for (std::size_t round = 0; round < NUM_ROUNDS; ++round)
     {
@@ -55,29 +55,29 @@ auto DES::GetRoundKeys(std::string_view const stringKey) noexcept -> std::array<
     return roundKeys;
 }
 
-auto DES::Encrypt(uint64_t const plaintext) const noexcept -> uint64_t
+auto DES::Encrypt(std::uint64_t const plaintext) const noexcept -> std::uint64_t
 {
     return EncryptDecrypt(plaintext, true);
 }
 
-auto DES::Decrypt(uint64_t const ciphertext) const noexcept -> uint64_t
+auto DES::Decrypt(std::uint64_t const ciphertext) const noexcept -> std::uint64_t
 {
     return EncryptDecrypt(ciphertext, false);
 }
 
-auto DES::EncryptDecrypt(uint64_t const input, bool const encrypt) const noexcept -> uint64_t
+auto DES::EncryptDecrypt(std::uint64_t const input, bool const encrypt) const noexcept -> std::uint64_t
 {
     static constexpr std::size_t MASK{0xFFFF'FFFF};
 
-    uint32_t left{0};
-    uint32_t newLeft{0};
-    uint32_t right{0};
-    uint64_t output{0};
+    std::uint32_t left{0};
+    std::uint32_t newLeft{0};
+    std::uint32_t right{0};
+    std::uint64_t output{0};
 
     auto const chunk = ComputeInitialPermutation(input);
 
-    left = static_cast<uint32_t>(chunk >> HALF_BLOCK_SIZE);
-    right = static_cast<uint32_t>(chunk & MASK);
+    left = static_cast<std::uint32_t>(chunk >> HALF_BLOCK_SIZE);
+    right = static_cast<std::uint32_t>(chunk & MASK);
 
     for (std::size_t round = 0; round < NUM_ROUNDS; ++round)
     {
@@ -86,17 +86,17 @@ auto DES::EncryptDecrypt(uint64_t const input, bool const encrypt) const noexcep
         left = newLeft;
     }
 
-    output = (static_cast<uint64_t>(right) << HALF_BLOCK_SIZE) | static_cast<uint64_t>(left);
+    output = (static_cast<std::uint64_t>(right) << HALF_BLOCK_SIZE) | static_cast<std::uint64_t>(left);
 
     return ComputeFinalPermutation(output);
 }
 
-auto DES::GetRoundKey(std::size_t const round, bool const encrypt) const noexcept -> uint64_t
+auto DES::GetRoundKey(std::size_t const round, bool const encrypt) const noexcept -> std::uint64_t
 {
     return roundKeys[encrypt ? round : NUM_ROUNDS - round - 1];
 }
 
-auto DES::ComputeInitialPermutation(uint64_t const input) noexcept -> uint64_t
+auto DES::ComputeInitialPermutation(std::uint64_t const input) noexcept -> std::uint64_t
 {
     static constexpr std::array<std::uint8_t, BLOCK_SIZE> INITIAL_PERMUTATION{
         57, 49, 41, 33, 25, 17, 9, 1,
@@ -112,7 +112,7 @@ auto DES::ComputeInitialPermutation(uint64_t const input) noexcept -> uint64_t
     return ComputePermutation(input, INITIAL_PERMUTATION.data(), BLOCK_SIZE);
 }
 
-auto DES::ComputeFinalPermutation(uint64_t const input) noexcept -> uint64_t
+auto DES::ComputeFinalPermutation(std::uint64_t const input) noexcept -> std::uint64_t
 {
     static constexpr std::array<std::uint8_t, BLOCK_SIZE> FINAL_PERMUTATION{
         39, 7, 47, 15, 55, 23, 63, 31,
@@ -129,11 +129,11 @@ auto DES::ComputeFinalPermutation(uint64_t const input) noexcept -> uint64_t
     return ComputePermutation(input, FINAL_PERMUTATION.data(), BLOCK_SIZE);
 }
 
-auto DES::ComputePermutation(uint64_t const input, uint8_t const * const permutation, std::size_t const size) noexcept -> uint64_t
+auto DES::ComputePermutation(std::uint64_t const input, std::uint8_t const * const permutation, std::size_t const size) noexcept -> std::uint64_t
 {
-    uint64_t result{0};
+    std::uint64_t result{0};
 
-    uint64_t currentBit{0};
+    std::uint64_t currentBit{0};
 
     for (std::size_t bit = 0; bit < size; ++bit)
     {
@@ -144,7 +144,7 @@ auto DES::ComputePermutation(uint64_t const input, uint8_t const * const permuta
     return result;
 }
 
-auto DES::ComputeFeistel(uint32_t const input, uint64_t const key) noexcept -> uint32_t
+auto DES::ComputeFeistel(std::uint32_t const input, std::uint64_t const key) noexcept -> std::uint32_t
 {
     auto const expansion = ComputeExpansion(input);
     auto const xorWithKey = expansion ^ key;
@@ -152,7 +152,7 @@ auto DES::ComputeFeistel(uint32_t const input, uint64_t const key) noexcept -> u
     return ComputeFeistelPermutation(substituted);
 }
 
-auto DES::ComputeExpansion(uint32_t const input) noexcept -> uint64_t
+auto DES::ComputeExpansion(std::uint32_t const input) noexcept -> std::uint64_t
 {
     static constexpr std::array<std::uint8_t, SUBKEY_SIZE> EXPANSION{
         31, 0, 1, 2, 3, 4,
@@ -165,9 +165,9 @@ auto DES::ComputeExpansion(uint32_t const input) noexcept -> uint64_t
         27, 28, 29, 30, 31, 0
     };
 
-    uint64_t result{0};
+    std::uint64_t result{0};
 
-    uint64_t currentBit{0};
+    std::uint64_t currentBit{0};
 
     for (std::size_t bit = 0; bit < SUBKEY_SIZE; ++bit)
     {
@@ -178,7 +178,7 @@ auto DES::ComputeExpansion(uint32_t const input) noexcept -> uint64_t
     return result;
 }
 
-auto DES::ComputeSBoxes(uint64_t const input) noexcept -> uint32_t
+auto DES::ComputeSBoxes(std::uint64_t const input) noexcept -> std::uint32_t
 {
     static constexpr std::size_t SUB_BOX_INPUT_SIZE{6U};
     static constexpr std::size_t NUM_SUB_BOXES{8U};
@@ -343,9 +343,9 @@ auto DES::ComputeSBoxes(uint64_t const input) noexcept -> uint32_t
         }
     };
 
-    uint32_t result{0};
+    std::uint32_t result{0};
 
-    uint64_t chunk{0};
+    std::uint64_t chunk{0};
     std::size_t subBoxIndex{0};
     std::size_t row{0};
     std::size_t col{0};
@@ -364,7 +364,7 @@ auto DES::ComputeSBoxes(uint64_t const input) noexcept -> uint32_t
     return result;
 }
 
-auto DES::ComputeFeistelPermutation(uint32_t const input) noexcept -> uint32_t
+auto DES::ComputeFeistelPermutation(std::uint32_t const input) noexcept -> std::uint32_t
 {
     static constexpr std::array<std::uint8_t, HALF_BLOCK_SIZE> FEISTEL_PERMUTATION{
         15, 6, 19, 20,
@@ -377,9 +377,9 @@ auto DES::ComputeFeistelPermutation(uint32_t const input) noexcept -> uint32_t
         21, 10, 3, 24
     };
 
-    uint32_t result{0};
+    std::uint32_t result{0};
 
-    uint32_t currentBit{0};
+    std::uint32_t currentBit{0};
 
     for (std::size_t bit = 0; bit < HALF_BLOCK_SIZE; ++bit)
     {

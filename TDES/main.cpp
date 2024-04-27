@@ -44,12 +44,14 @@ auto main() -> int
 {
     TDES tdes(TDES::GetRandomKey());
 
+    std::uint8_t lastBytes{0};
+
     MeasureTime([&] {
-        tdes.EncryptFile("../plain.txt", "../encrypted.txt");
+        lastBytes = tdes.EncryptFile("../plain.txt", "../encrypted.txt");
     }, "Encryption");
 
     MeasureTime([&] {
-        tdes.DecryptFile("../encrypted.txt", "../decrypted.txt");
+        tdes.DecryptFile("../encrypted.txt", "../decrypted.txt", lastBytes);
     }, "Decryption");
 
     return EXIT_SUCCESS;
