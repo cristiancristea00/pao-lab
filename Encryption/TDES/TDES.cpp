@@ -79,7 +79,7 @@ auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_
     }
 
     std::vector<std::uint64_t> input;
-    input.reserve(buffer.size() / BYTES_IN_64BITS + 1);
+    input.reserve(buffer.size() / BYTES_IN_64BITS);
 
     std::uint64_t currentValue{0U};
 
@@ -150,7 +150,7 @@ auto TDES::DecryptSequence(std::vector<std::uint64_t> const & input) const noexc
 
 auto TDES::EncryptDecryptSequence(std::vector<std::uint64_t> const & input) const -> std::vector<std::uint64_t>
 {
-    static const std::size_t NONCE = GetNonce();
+    static const auto NONCE = GetNonce();
 
     std::vector<std::uint64_t> result(input.size(), 0U);
 

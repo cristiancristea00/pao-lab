@@ -41,37 +41,23 @@ auto MeasureTime(std::function<void()> const & function, std::string_view const 
 
 auto main() -> int
 {
-    // AES const aes(AES::GetRandomKey());
-    //
-    // MeasureTime(
-    //     [&]
-    //     {
-    //         aes.EncryptFile("../plain.txt", "../encrypted.txt");
-    //     }, "Encryption"
-    // );
-    //
-    // MeasureTime(
-    //     [&]
-    //     {
-    //         aes.DecryptFile("../encrypted.txt", "../decrypted.txt");
-    //     }, "Decryption"
-    // );
+    AES const aes(AES::GetRandomKey());
 
-    AES const aes("2b7e151628aed2a6abf7158809cf4f3c");
+    std::uint8_t lastBytes{0};
 
-    // const auto * plaintext = reinterpret_cast<BufferType const *>("\x6b\xc1\xbe\xe2\x2e\x40\x9f\x96\xe9\x3d\x7e\x11\x73\x93\x17\x2a");
-    const auto * plaintext = reinterpret_cast<BufferType const *>("\x3a\xd7\x7b\xb4\x0d\x7a\x36\x60\xa8\x9e\xca\xf3\x24\x66\xef\x97");
+    MeasureTime(
+        [&]
+        {
+            lastBytes = aes.EncryptFile("../plain.txt", "../encrypted.txt");
+        }, "Encryption"
+    );
 
-    auto const result = aes.Decrypt(const_cast<BufferType *>(plaintext));
-
-    std::string resultString;
-
-    for (std::size_t idx = 0; idx < 16; ++idx)
-    {
-        resultString.append(std::format("{:02X}", result[idx]));
-    }
-
-    std::cout << resultString << '\n';
+    MeasureTime(
+        [&]
+        {
+            aes.DecryptFile("../encrypted.txt", "../decrypted.txt", lastBytes);
+        }, "Decryption"
+    );
 
     return EXIT_SUCCESS;
 }
