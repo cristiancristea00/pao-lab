@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <format>
+#include <functional>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -31,6 +32,10 @@ constexpr auto as_num(Enumeration const value) noexcept -> std::size_t requires 
 {
     return static_cast<std::size_t>(value);
 }
+
+
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void;
+
 
 class AES
 {

@@ -1,11 +1,16 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string_view>
 #include <vector>
 
 #include "DES.hpp"
+
+
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void;
+
 
 class TDES
 {

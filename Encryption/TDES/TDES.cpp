@@ -1,10 +1,23 @@
 #include "TDES.hpp"
 
+#include <chrono>
 #include <format>
 #include <fstream>
+#include <iostream>
 #include <random>
 
 #include "DES.hpp"
+
+
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void
+{
+    auto const start = std::chrono::high_resolution_clock::now();
+    function();
+    auto const stop = std::chrono::high_resolution_clock::now();
+    auto const difference_ms = duration_cast<std::chrono::milliseconds>(stop - start);
+    auto const time_ms = difference_ms.count();
+    std::cout << std::format("{}: {} ms\n", message, time_ms);
+}
 
 
 TDES::TDES(std::string_view const key) noexcept: des1(std::make_unique<DES>(key.substr(0, KEY_SIZE_IN_BYTES / NUM_KEYS * LENGTH_RATIO))),
@@ -107,7 +120,14 @@ auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_
     buffer.shrink_to_fit();
 
     auto const processFunction = encrypt ? &TDES::EncryptSequence : &TDES::DecryptSequence;
-    auto const processed = (this->*processFunction)(input);
+    std::vector<std::uint64_t> processed;
+
+    MeasureTime(
+        [&] -> void
+        {
+            processed = (this->*processFunction)(input);
+        }, encrypt ? "Encryption" : "Decryption"
+    );
 
     std::ofstream outputFile{outputFileName.data(), std::ios::binary};
 
@@ -118,18 +138,11 @@ auto TDES::EncryptDecryptFile(std::string_view const inputFileName, std::string_
 
     if (encrypt)
     {
-        for (std::uint64_t const & elem : processed)
-        {
-            outputFile.write(reinterpret_cast<char const *>(&elem), BYTES_IN_64BITS);
-        }
+        outputFile.write(reinterpret_cast<char const *>(processed.data()), processed.size() * BYTES_IN_64BITS);
     }
     else
     {
-        for (std::size_t idx = 0; idx < processed.size() - 1; ++idx)
-        {
-            outputFile.write(reinterpret_cast<char const *>(&processed[idx]), BYTES_IN_64BITS);
-        }
-
+        outputFile.write(reinterpret_cast<char const *>(processed.data()), (processed.size() - 1) * BYTES_IN_64BITS);
         outputFile.write(reinterpret_cast<char const *>(&processed.back()), lastBytes == 0 ? BYTES_IN_64BITS : lastBytes);
     }
 
@@ -154,7 +167,7 @@ auto TDES::EncryptDecryptSequence(std::vector<std::uint64_t> const & input) cons
 
     std::vector<std::uint64_t> result(input.size(), 0U);
 
-    #pragma omp parallel for
+    #pragma omp parallel for default(none) shared(input, result, NONCE) schedule(static)
     for (std::size_t idx = 0; idx < input.size(); ++idx)
     {
         result[idx] = input[idx] ^ Encrypt(NONCE ^ idx);

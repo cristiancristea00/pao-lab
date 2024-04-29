@@ -30,44 +30,16 @@ File Size: 5.5 MB
 Execution Time (Compiler Optimized): TBD ms
 */
 
-#include <chrono>
-#include <functional>
-#include <iostream>
-
 #include "AES.hpp"
-
-auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void;
 
 
 auto main() -> int
 {
     AES const aes(AES::GetRandomKey());
 
-    std::uint8_t lastBytes{0};
+    auto const lastBytes = aes.EncryptFile("../plain.txt", "../encrypted.txt");
 
-    MeasureTime(
-        [&]
-        {
-            lastBytes = aes.EncryptFile("../plain.txt", "../encrypted.txt");
-        }, "Encryption"
-    );
-
-    MeasureTime(
-        [&]
-        {
-            aes.DecryptFile("../encrypted.txt", "../decrypted.txt", lastBytes);
-        }, "Decryption"
-    );
+    aes.DecryptFile("../encrypted.txt", "../decrypted.txt", lastBytes);
 
     return EXIT_SUCCESS;
-}
-
-auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void
-{
-    auto const start = std::chrono::high_resolution_clock::now();
-    function();
-    auto const stop = std::chrono::high_resolution_clock::now();
-    auto const difference_ms = duration_cast<std::chrono::milliseconds>(stop - start);
-    auto const time_ms = difference_ms.count();
-    std::cout << std::format("{}: {} ms\n", message, time_ms);
 }

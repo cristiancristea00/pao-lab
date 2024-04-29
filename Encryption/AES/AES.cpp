@@ -1,8 +1,10 @@
 #include "AES.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <format>
 #include <fstream>
+#include <iostream>
 #include <random>
 #include <string>
 
@@ -26,13 +28,24 @@ enum class RoundSize : std::uint8_t
 };
 
 
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void
+{
+    auto const start = std::chrono::high_resolution_clock::now();
+    function();
+    auto const stop = std::chrono::high_resolution_clock::now();
+    auto const difference_ms = duration_cast<std::chrono::milliseconds>(stop - start);
+    auto const time_ms = difference_ms.count();
+    std::cout << std::format("{}: {} ms\n", message, time_ms);
+}
+
+
 AES::AES(std::string_view const stringKey) : keySize{GetKeySize(stringKey)},
                                              rounds{GetNumRounds(stringKey)},
                                              roundKeys{GetRoundKeys(stringKey)} { }
 
 auto AES::Encrypt(BufferType const * const plaintext) const noexcept -> BufferPointer
 {
-    auto result = std::make_unique<BufferType[]>(keySize);
+    auto result = std::make_unique<BufferType[]>(BLOCK_SIZE);
 
     int128_t temp;
 
@@ -50,7 +63,7 @@ auto AES::Encrypt(BufferType const * const plaintext) const noexcept -> BufferPo
 
 auto AES::Decrypt(BufferType const * const ciphertext) const noexcept -> BufferPointer
 {
-    auto result = std::make_unique<BufferType[]>(keySize);
+    auto result = std::make_unique<BufferType[]>(BLOCK_SIZE);
 
     int128_t temp;
 
@@ -118,7 +131,14 @@ auto AES::EncryptDecryptFile(std::string_view const inputFileName, std::string_v
     input.shrink_to_fit();
 
     auto const processFunction = encrypt ? &AES::EncryptSequence : &AES::DecryptSequence;
-    auto const processed = (this->*processFunction)(input);
+    std::vector<BufferType> processed;
+
+    MeasureTime(
+        [&] -> void
+        {
+            processed = (this->*processFunction)(input);
+        }, encrypt ? "Encryption" : "Decryption"
+    );
 
     std::ofstream outputFile{outputFileName.data(), std::ios::binary};
 
@@ -129,17 +149,11 @@ auto AES::EncryptDecryptFile(std::string_view const inputFileName, std::string_v
 
     if (encrypt)
     {
-        for (BufferType const & elem : processed)
-        {
-            outputFile.write(reinterpret_cast<char const *>(&elem), 1);
-        }
+        outputFile.write(reinterpret_cast<char const *>(processed.data()), processed.size());
     }
     else
     {
-        for (std::size_t idx = 0; idx < processed.size() - (BLOCK_SIZE - lastBytes); ++idx)
-        {
-            outputFile.write(reinterpret_cast<char const *>(&processed[idx]), 1);
-        }
+        outputFile.write(reinterpret_cast<char const *>(processed.data()), processed.size() - (BLOCK_SIZE - lastBytes));
     }
 
     outputFile.close();
@@ -164,18 +178,19 @@ auto AES::EncryptDecryptSequence(std::vector<BufferType> const & input) const ->
 
     std::vector<BufferType> result(input.size(), 0U);
 
-    auto const currentVal = std::make_unique<BufferType[]>(BLOCK_SIZE);
+    int128_t current;
+    std::array<BufferType, BLOCK_SIZE> currentVal{};
 
-    #pragma omp parallel for
-    for (std::size_t idx = 0; idx < input.size(); idx += BLOCK_SIZE)
+    #pragma omp parallel for default(none) shared(input, result, nonce) private(currentVal, current) schedule(static)
+    for (std::size_t idx = 0; idx < input.size() / BLOCK_SIZE; ++idx)
     {
-        int128_t current = _mm_xor_si128(nonce, _mm_set_epi64x(0, idx));
-        _mm_storeu_si128(INT128_PTR(currentVal.get()), current);
-        auto const processed = Encrypt(currentVal.get());
+        current = _mm_xor_si128(nonce, _mm_set_epi64x(0, idx));
+        _mm_storeu_si128(INT128_PTR(currentVal.data()), current);
+        auto const processed = Encrypt(currentVal.data());
         current = _mm_loadu_si128(INT128_PTRC(processed.get()));
-        int128_t inputBlock = _mm_loadu_si128(INT128_PTRC(input.data() + idx));
+        int128_t inputBlock = _mm_loadu_si128(INT128_PTRC(input.data() + idx * BLOCK_SIZE));
         current = _mm_xor_si128(current, inputBlock);
-        _mm_storeu_si128(INT128_PTR(result.data() + idx), current);
+        _mm_storeu_si128(INT128_PTR(result.data() + idx * BLOCK_SIZE), current);
     }
 
     return result;
