@@ -27,7 +27,7 @@ Compiler: gcc 13.2.0
 
 /*
 File Size: 5.5 MB
-Execution Time (Compiler Optimized): 290 ms
+Execution Time (Compiler Optimized): 235 ms
 */
 
 #include <chrono>
