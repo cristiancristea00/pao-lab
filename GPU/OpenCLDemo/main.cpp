@@ -1,5 +1,5 @@
 #include <iostream>
-#include <format>
+#include <print>
 #include <ranges>
 #include <vector>
 #include <random>
@@ -19,7 +19,7 @@
 auto GetContext(void) -> cl::Context;
 auto GetProgram(cl::Context const & context, std::string_view const filename) -> cl::Program;
 
-auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void;
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void;
 
 
 using namespace std::chrono;
@@ -53,9 +53,10 @@ auto main() -> int
     }, "Time taken to load data");
 
     cl::KernelFunctor<cl::Buffer, cl::Buffer, cl::Buffer> multiplyFunctor{program, "add"};
+    cl::EnqueueArgs const args{queue, cl::NDRange{SIZE}};
 
     MeasureTime([&] {
-        multiplyFunctor(cl::EnqueueArgs{queue, cl::NDRange{SIZE}}, bufferA, bufferB, bufferC);
+        multiplyFunctor(args, bufferA, bufferB, bufferC);
         queue.finish();
     }, "Time taken for vector addition");
 
@@ -74,37 +75,37 @@ auto GetContext(void) -> cl::Context
 
     if (platforms.empty())
     {
-        std::cerr << "No OpenCL platforms found. Check your OpenCL installation.\n";
+        std::println(stderr, "No OpenCL platforms found. Check your OpenCL and drivers installation.");
         return EXIT_FAILURE;
     }
 
-    std::cout << std::format("Found {} OpenCL platform(s):\n", platforms.size());
+    std::println("Found {} OpenCL platform(s):", platforms.size());
     for (auto const & [index, platform]: std::views::enumerate(platforms))
     {
-        std::cout << std::format("Platform {}: {}\n", index, platform.getInfo<CL_PLATFORM_NAME>());
+        std::println("Platform {}: {}", index, platform.getInfo<CL_PLATFORM_NAME>());
     }
 
     cl::Platform const platform = platforms.front();
 
-    std::cout << std::format("\nUsing platform: {}\n", platform.getInfo<CL_PLATFORM_NAME>());
+    std::println("\nUsing platform: {}", platform.getInfo<CL_PLATFORM_NAME>());
 
     std::vector<cl::Device> devices;
     platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
 
     if (devices.empty())
     {
-        std::cerr << "No OpenCL devices found. Check your OpenCL installation.\n";
+        std::println(stderr, "No OpenCL devices found. Check your OpenCL and drivers installation.");
         return EXIT_FAILURE;
     }
 
-    std::cout << std::format("\nFound {} OpenCL device(s):\n", devices.size());
+    std::println("\nFound {} OpenCL device(s):", devices.size());
     for (auto const & [index, device]: std::views::enumerate(devices))
     {
-        std::cout << std::format("Device {}: {}\n", index, device.getInfo<CL_DEVICE_NAME>());
+        std::println("Device {}: {}", index, device.getInfo<CL_DEVICE_NAME>());
     }
 
     cl::Device const device = devices.front();
-    std::cout << std::format("\nUsing device: {}\n", device.getInfo<CL_DEVICE_NAME>());
+    std::println("\nUsing device: {}", device.getInfo<CL_DEVICE_NAME>());
 
     return cl::Context{device};
 }
@@ -126,8 +127,8 @@ auto GetProgram(cl::Context const & context, std::string_view const filename) ->
     {
         if (error.err() == CL_BUILD_PROGRAM_FAILURE)
         {
-            std::cerr << "Build log:\n";
-            std::cerr << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(context.getInfo<CL_CONTEXT_DEVICES>().front());
+            std::println(stderr, "Build log:");
+            std::println(stderr, "{}", program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(context.getInfo<CL_CONTEXT_DEVICES>().front()));
         }
         
         throw;
@@ -137,12 +138,12 @@ auto GetProgram(cl::Context const & context, std::string_view const filename) ->
 }
 
 
-auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void
 {
     auto const start = high_resolution_clock::now();
     function();
     auto const stop = high_resolution_clock::now();
     auto const difference_ms = duration_cast<milliseconds>(stop - start);
     auto const time_ms = difference_ms.count();
-    std::cout << std::format("{}: {} ms\n", message, time_ms);
+    std::println("{}: {} ms", message, time_ms);
 }
