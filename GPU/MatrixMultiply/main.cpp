@@ -1,5 +1,4 @@
-#include <iostream>
-#include <format>
+#include <print>
 #include <ranges>
 #include <vector>
 #include <random>
@@ -10,11 +9,12 @@
 
 #include <CL/opencl.hpp>
 
+
 #define SEED         ( 0xDEADBEEF42UL )
 
-#define M            ( 10'016UL )
-#define N            ( 10'016UL )
-#define K            ( 10'016UL )
+#define M            ( 10'240UL )
+#define N            ( 10'240UL )
+#define K            ( 10'240UL )
 #define SIZE_A       ( M * K )
 #define SIZE_B       ( K * N )
 #define SIZE_C       ( M * N )
@@ -22,13 +22,21 @@
 #define STORAGE_B    ( SIZE_B * sizeof(float) )
 #define STORAGE_C    ( SIZE_C * sizeof(float) )
 
-#define TILE_SIZE    ( 32 )
+#define TILE_SIZE_M           ( 128 )
+#define TILE_SIZE_N           ( 128 )
+#define TILE_SIZE_K           ( 32 )
+#define WORK_THREAD_M         ( 8 )
+#define WORK_THREAD_N         ( 8 )
+#define RED_TILE_SIZE_M       ( TILE_SIZE_M / WORK_THREAD_M )
+#define RED_TILE_SIZE_N       ( TILE_SIZE_N / WORK_THREAD_N )
+#define LOADS_PER_THREAD_A    ( ( TILE_SIZE_K * TILE_SIZE_M ) / ( RED_TILE_SIZE_M * RED_TILE_SIZE_N ) )
+#define LOADS_PER_THREAD_B    ( ( TILE_SIZE_K * TILE_SIZE_N ) / ( RED_TILE_SIZE_M * RED_TILE_SIZE_N ) )
 
 
 auto GetContext() -> cl::Context;
 auto GetProgram(cl::Context const & context, std::string_view const filename) -> cl::Program;
 
-auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void;
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void;
 
 
 using namespace std::chrono;
@@ -62,7 +70,7 @@ auto main() -> int
     }, "Time taken to load data");
 
     cl::KernelFunctor<cl::Buffer, cl::Buffer, cl::Buffer, unsigned const, unsigned const, unsigned const> multiplyFunctor{program, "multiply"};
-    cl::EnqueueArgs const args{queue, cl::NDRange{M, N}, cl::NDRange{TILE_SIZE, TILE_SIZE}};
+    cl::EnqueueArgs const args{queue, cl::NDRange{M / WORK_THREAD_M, N / WORK_THREAD_N}, cl::NDRange{RED_TILE_SIZE_M, RED_TILE_SIZE_N}};
 
     MeasureTime([&] {
         multiplyFunctor(args, bufferA, bufferB, bufferC, M, N, K);
@@ -75,7 +83,7 @@ auto main() -> int
 
     auto const checksum = std::reduce(result.cbegin(), result.cend(), 0.0F, [] (auto const & lhs, auto const & rhs) -> auto { return (lhs + rhs) / 100.0F; });
 
-    std::cout << std::format("Checksum: {}\n", checksum);
+    std::println("Checksum: {}", checksum);
 
     return 0;
 }
@@ -88,37 +96,37 @@ auto GetContext() -> cl::Context
 
     if (platforms.empty())
     {
-        std::cerr << "No OpenCL platforms found. Check your OpenCL installation.\n";
+        std::println(stderr, "No OpenCL platforms found. Check your OpenCL and drivers installation.");
         return EXIT_FAILURE;
     }
 
-    std::cout << std::format("Found {} OpenCL platform(s):\n", platforms.size());
+    std::println("Found {} OpenCL platform(s):", platforms.size());
     for (auto const & [index, platform]: std::views::enumerate(platforms))
     {
-        std::cout << std::format("Platform {}: {}\n", index, platform.getInfo<CL_PLATFORM_NAME>());
+        std::println("Platform {}: {}", index, platform.getInfo<CL_PLATFORM_NAME>());
     }
 
     cl::Platform const platform = platforms.front();
 
-    std::cout << std::format("\nUsing platform: {}\n", platform.getInfo<CL_PLATFORM_NAME>());
+    std::println("\nUsing platform: {}", platform.getInfo<CL_PLATFORM_NAME>());
 
     std::vector<cl::Device> devices;
     platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
 
     if (devices.empty())
     {
-        std::cerr << "No OpenCL devices found. Check your OpenCL installation.\n";
+        std::println(stderr, "No OpenCL devices found. Check your OpenCL and drivers installation.");
         return EXIT_FAILURE;
     }
 
-    std::cout << std::format("\nFound {} OpenCL device(s):\n", devices.size());
+    std::println("\nFound {} OpenCL device(s):", devices.size());
     for (auto const & [index, device]: std::views::enumerate(devices))
     {
-        std::cout << std::format("Device {}: {}\n", index, device.getInfo<CL_DEVICE_NAME>());
+        std::println("Device {}: {}", index, device.getInfo<CL_DEVICE_NAME>());
     }
 
     cl::Device const device = devices.front();
-    std::cout << std::format("\nUsing device: {}\n", device.getInfo<CL_DEVICE_NAME>());
+    std::println("\nUsing device: {}", device.getInfo<CL_DEVICE_NAME>());
 
     return cl::Context{device};
 }
@@ -140,8 +148,8 @@ auto GetProgram(cl::Context const & context, std::string_view const filename) ->
     {
         if (error.err() == CL_BUILD_PROGRAM_FAILURE)
         {
-            std::cerr << "Build log:\n";
-            std::cerr << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(context.getInfo<CL_CONTEXT_DEVICES>().front());
+            std::println(stderr, "Build log:");
+            std::println(stderr, "{}", program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(context.getInfo<CL_CONTEXT_DEVICES>().front()));
         }
         
         throw;
@@ -151,12 +159,12 @@ auto GetProgram(cl::Context const & context, std::string_view const filename) ->
 }
 
 
-auto MeasureTime(std::function<void(void)> const & function, std::string_view const message) -> void
+auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void
 {
     auto const start = high_resolution_clock::now();
     function();
     auto const stop = high_resolution_clock::now();
     auto const difference_ms = duration_cast<milliseconds>(stop - start);
     auto const time_ms = difference_ms.count();
-    std::cout << std::format("{}: {} ms\n", message, time_ms);
+    std::println("{}: {} ms", message, time_ms);
 }
