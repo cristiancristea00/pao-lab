@@ -40,7 +40,7 @@ Compiler: gcc 14.0.1
 */
 
 /*
-Execution Time (Compiler Optimized): 1293 ms => 0.8304 TFLOPS
+Execution Time (Compiler Optimized): 75 ms => 0.512 TFLOPS
 */
 
 
@@ -51,32 +51,17 @@ Execution Time (Compiler Optimized): 1293 ms => 0.8304 TFLOPS
 #include <algorithm>
 #include <chrono>
 #include <fstream>
-#include <numeric>
 
 #include <CL/opencl.hpp>
 
 
-#define SEED         ( 0xDEADBEEF42UL )
+#define SEED    ( 0xDEADBEEF42UL )
 
-#define M            ( 10'240UL )
-#define N            ( 10'240UL )
-#define K            ( 10'240UL )
-#define SIZE_A       ( M * K )
-#define SIZE_B       ( K * N )
-#define SIZE_C       ( M * N )
-#define STORAGE_A    ( SIZE_A * sizeof(float) )
-#define STORAGE_B    ( SIZE_B * sizeof(float) )
-#define STORAGE_C    ( SIZE_C * sizeof(float) )
-
-#define TILE_SIZE_M           ( 128 )
-#define TILE_SIZE_N           ( 128 )
-#define TILE_SIZE_K           ( 32 )
-#define WORK_THREAD_M         ( 8 )
-#define WORK_THREAD_N         ( 8 )
-#define RED_TILE_SIZE_M       ( TILE_SIZE_M / WORK_THREAD_M )
-#define RED_TILE_SIZE_N       ( TILE_SIZE_N / WORK_THREAD_N )
-#define LOADS_PER_THREAD_A    ( ( TILE_SIZE_K * TILE_SIZE_M ) / ( RED_TILE_SIZE_M * RED_TILE_SIZE_N ) )
-#define LOADS_PER_THREAD_B    ( ( TILE_SIZE_K * TILE_SIZE_N ) / ( RED_TILE_SIZE_M * RED_TILE_SIZE_N ) )
+#define DIMENSIONS         ( 128UL )
+#define NUM_OF_POINTS      ( 10'000UL )
+#define TOTAL_SIZE         ( NUM_OF_POINTS * DIMENSIONS )
+#define STORAGE            ( TOTAL_SIZE * sizeof(float) )
+#define STORAGE_INDICES    ( NUM_OF_POINTS * sizeof(std::size_t) )
 
 
 auto GetContext() -> cl::Context;
@@ -85,11 +70,18 @@ auto GetProgram(cl::Context const & context, std::string_view const filename) ->
 
 auto MeasureTime(std::function<void()> const & function, std::string_view const message) -> void;
 
+auto ComputeChecksum(std::array<std::size_t, NUM_OF_POINTS> const & indices) -> void;
+
+
+std::array<float, TOTAL_SIZE> set1{};
+std::array<float, TOTAL_SIZE> set2{};
+std::array<std::size_t, NUM_OF_POINTS> indices{};
+
 
 auto main() -> int
 {
     auto const context = GetContext();
-    auto const program = GetProgram(context, "../multiply.cl");
+    auto const program = GetProgram(context, "../sad.cl");
 
     std::mt19937 randomEngine{SEED};
     std::uniform_real_distribution<float> randomDistribution{0.0, 1.0};
@@ -98,53 +90,42 @@ auto main() -> int
         return randomDistribution(randomEngine);
     };
 
-    std::vector<float> mat1(SIZE_A);
-    std::vector<float> mat2(SIZE_B);
-    std::vector<float> result(SIZE_C);
+    std::ranges::generate(set1, generator);
+    std::ranges::generate(set2, generator);
 
-    std::ranges::generate(mat1, generator);
-    std::ranges::generate(mat2, generator);
-
-    cl::Buffer bufferA{context, CL_MEM_READ_ONLY, STORAGE_A};
-    cl::Buffer bufferB{context, CL_MEM_READ_ONLY, STORAGE_B};
-    cl::Buffer bufferC{context, CL_MEM_WRITE_ONLY, STORAGE_C};
+    cl::Buffer bufferSet1{context, CL_MEM_READ_ONLY, STORAGE};
+    cl::Buffer bufferSet2{context, CL_MEM_READ_ONLY, STORAGE};
+    cl::Buffer bufferIndices{context, CL_MEM_WRITE_ONLY, STORAGE_INDICES};
 
     cl::CommandQueue queue{context};
 
     MeasureTime(
-        [&]-> void
+        [&] -> void
         {
-            cl::copy(queue, mat1.begin(), mat1.end(), bufferA);
-            cl::copy(queue, mat2.begin(), mat2.end(), bufferB);
+            cl::copy(queue, set1.begin(), set1.end(), bufferSet1);
+            cl::copy(queue, set2.begin(), set2.end(), bufferSet2);
         }, "Time taken to load data"
     );
 
-    cl::KernelFunctor<cl::Buffer, cl::Buffer, cl::Buffer, unsigned const, unsigned const, unsigned const> multiplyFunctor{program, "multiply"};
-    cl::EnqueueArgs const args{queue, cl::NDRange{M / WORK_THREAD_M, N / WORK_THREAD_N}, cl::NDRange{RED_TILE_SIZE_M, RED_TILE_SIZE_N}};
+    cl::KernelFunctor<cl::Buffer, cl::Buffer, cl::Buffer, unsigned const> ssdFunctor{program, "sad"};
+    cl::EnqueueArgs const args{queue, cl::NDRange{NUM_OF_POINTS}};
 
     MeasureTime(
-        [&]-> void
+        [&] -> void
         {
-            multiplyFunctor(args, bufferA, bufferB, bufferC, M, N, K);
+            ssdFunctor(args, bufferSet1, bufferSet2, bufferIndices,NUM_OF_POINTS);
             queue.finish();
-        }, "Time taken for matrix multiplication"
+        }, "Time taken for SAD (L1 Norm) calculation"
     );
 
     MeasureTime(
-        [&]-> void
+        [&] -> void
         {
-            cl::copy(queue, bufferC, result.begin(), result.end());
+            cl::copy(queue, bufferIndices, indices.begin(), indices.end());
         }, "Time taken to unload data"
     );
 
-    auto const checksum = std::reduce(
-        result.cbegin(), result.cend(), 0.0F, [](auto const & lhs, auto const & rhs) -> auto
-        {
-            return (lhs + rhs) / 100.0F;
-        }
-    );
-
-    std::println("Checksum: {}", checksum);
+    ComputeChecksum(indices);
 
     return 0;
 }
@@ -197,7 +178,7 @@ auto GetProgram(cl::Context const & context, std::string_view const filename) ->
     std::ifstream file{filename.data()};
 
     using FileIterator = std::istreambuf_iterator<char>;
-    std::string source{FileIterator{file}, FileIterator{}};
+    std::string const source{FileIterator{file}, FileIterator{}};
 
     cl::Program program{context, source};
 
@@ -230,4 +211,10 @@ auto MeasureTime(std::function<void()> const & function, std::string_view const 
     auto const difference_ms = duration_cast<milliseconds>(stop - start);
     auto const time_ms = difference_ms.count();
     std::println("{}: {} ms", message, time_ms);
+}
+
+auto ComputeChecksum(std::array<std::size_t, NUM_OF_POINTS> const & indices) -> void
+{
+    auto const checksum = std::reduce(indices.begin(), indices.end(), 0UL, std::bit_xor{});
+    std::println("Checksum : {:#x}", checksum);
 }
