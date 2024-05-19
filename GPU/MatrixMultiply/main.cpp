@@ -1,3 +1,49 @@
+/*
+## Processor
+
+Name: Intel® Core™ i7-9750H
+Cores: 6
+Threads: 12
+Base Frequency: 2.6 GHz
+Max Frequency: 4.5 GHz
+Cache: 12 MB
+Memory Channels: 2
+Max Memory Bandwidth: 41.8 GB/s
+
+## Graphics
+Name: NVIDIA GeForce GTX 1650
+Compute Capability: 7.5
+CUDA Cores: 1024
+Stream Multiprocessors: 16
+L1 Cache: 64 KB (per SM)
+L2 Cache: 1024 KB
+Base Frequency: 1455 MHz
+Boost Frequency: 1620 MHz
+Memory Size: 4 GB
+Memory Type: GDDR6
+Memory Bus: 128-bit
+Memory Bandwidth: 192 GB/s
+Memory Clock: 1500 MT/s (12 Gbps effective)
+Performance: 3.318 TFLOPS (FP32)
+
+## Memory
+
+Type: DDR4
+Size: 16 GB (Dual Channel - 2x8 GB)
+Speed: 2667 MT/s
+
+## Environment
+
+Operating System: Ubuntu 24.04 (Noble Numbat)
+Kernel: 6.8.0-31-generic
+Compiler: gcc 14.0.1
+*/
+
+/*
+Execution Time (Compiler Optimized): 1293 ms => 0.8304 TFLOPS
+*/
+
+
 #include <print>
 #include <ranges>
 #include <vector>
