@@ -40,7 +40,7 @@ Compiler: gcc 14.0.1
 */
 
 /*
-Execution Time (Compiler Optimized): 75 ms => 0.512 TFLOPS
+Execution Time (Compiler Optimized): 56 ms => 0.686 TFLOPS
 */
 
 
